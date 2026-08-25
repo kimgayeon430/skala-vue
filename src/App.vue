@@ -31,6 +31,9 @@ import ModelModifier from './components/practices/basic/ModelModifier.vue'
 
 // 5. Vue Style Handling
 import StyleScoped from './components/practices/basic/StyleScoped.vue'
+
+// 6. 날씨
+import WeatherMockup from './components/practices/basic/WeatherMockup.vue'
 </script>
 
 <template>
@@ -68,6 +71,10 @@ import StyleScoped from './components/practices/basic/StyleScoped.vue'
     <h1>5. Vue Style Handling</h1>
     <hr />
     <StyleScoped />
+
+    <h1>6. Hands on</h1>
+    <hr />
+    <WeatherMockup />
   </div>
 </template>
 

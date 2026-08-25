@@ -1,84 +1,49 @@
-<script setup>
-// 1. 학습환경 구성
-import SampleOne from './components/practices/basic/SampleOne.vue'
-import SampleTwo from './components/practices/basic/SampleTwo.vue'
-
-// 2. Vue Directive
-import VueHtml from './components/practices/basic/VueHtml.vue'
-import VueHtmlXss from './components/practices/basic/VueHtmlXss.vue'
-import VueText from './components/practices/basic/VueText.vue'
-import VueBind from './components/practices/basic/VueBind.vue'
-import VueBindClass from './components/practices/basic/VueBindClass.vue'
-import VueBindStyle from './components/practices/basic/VueBindStyle.vue'
-import VueBindShorthand from './components/practices/basic/VueBindShorthand.vue'
-import VueIf from './components/practices/basic/VueIf.vue'
-import VueShow from './components/practices/basic/VueShow.vue'
-import VueFor from './components/practices/basic/VueFor.vue'
-import VuePre from './components/practices/basic/VuePre.vue'
-import VueCloak from './components/practices/basic/VueCloak.vue'
-import VueOnce from './components/practices/basic/VueOnce.vue'
-import VueMemo from './components/practices/basic/VueMemo.vue'
-
-// 3. Vue Event Handling
-import EventBasic from './components/practices/basic/EventBasic.vue'
-import EventObject from './components/practices/basic/EventObject.vue'
-import EventModifier from './components/practices/basic/EventModifier.vue'
-
-// 4. Vue Form Handling
-import ModelBasic from './components/practices/basic/ModelBasic.vue'
-import ModelForm from './components/practices/basic/ModelForm.vue'
-import ModelModifier from './components/practices/basic/ModelModifier.vue'
-
-// 5. Vue Style Handling
-import StyleScoped from './components/practices/basic/StyleScoped.vue'
-
-// 6. 날씨
-import WeatherMockup from './components/practices/basic/WeatherMockup.vue'
-</script>
-
 <template>
-  <div class="practice-container">
-    <h1>1. 학습환경구성</h1>
-    <hr />
-    <SampleOne />
-    <SampleTwo />
-    <h1>2. Vue Directive</h1>
-    <hr />
-    <VueHtml />
-    <VueHtmlXss />
-    <VueText />
-    <VueBind />
-    <VueBindClass />
-    <VueBindStyle />
-    <VueBindShorthand />
-    <VueIf />
-    <VueShow />
-    <VueFor />
-    <VuePre />
-    <VueCloak />
-    <VueOnce />
-    <VueMemo />
-    <h1>3. Vue Event Handling</h1>
-    <hr />
-    <EventBasic />
-    <EventObject />
-    <EventModifier />
-    <h1>4. Vue Form Handling</h1>
-    <hr />
-    <ModelBasic />
-    <ModelForm />
-    <ModelModifier />
-    <h1>5. Vue Style Handling</h1>
-    <hr />
-    <StyleScoped />
+  <header class="app-header">
+    <nav class="app-nav" aria-label="주요 메뉴">
+      <RouterLink to="/practice">기본 실습</RouterLink>
+      <RouterLink to="/practice2">Composition API</RouterLink>
+      <RouterLink to="/weather">날씨 과제</RouterLink>
+    </nav>
+  </header>
 
-    <h1>6. Hands on</h1>
-    <hr />
-    <WeatherMockup />
-  </div>
+  <!-- 현재 URL과 일치하는 View 컴포넌트가 이 위치에 렌더링됨 -->
+  <RouterView />
 </template>
 
 <style>
-/* ⚠️ 외부 스타일 파일(예: 버튼 디자인 뭉치)을 이 방 안으로 쏙 가리켜 가져옵니다 */
 @import '@/assets/practice.css';
+
+.app-header {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  padding: 12px 24px;
+  border-bottom: 1px solid #dfe5eb;
+  background: rgb(255 255 255 / 95%);
+}
+
+.app-nav {
+  display: flex;
+  gap: 8px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.app-nav a {
+  padding: 8px 14px;
+  border-radius: 6px;
+  color: #34495e;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.app-nav a:hover {
+  background-color: #eef5f2;
+}
+
+.app-nav a.router-link-active {
+  background-color: #42b883;
+  color: white;
+}
 </style>

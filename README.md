@@ -12,6 +12,7 @@ Vue 3의 기본 문법을 작은 예제로 직접 실행해 보고, 배운 내�
 - `v-model`의 양방향 바인딩 원리와 폼 요소별 동작 비교
 - scoped CSS와 동적 클래스 및 스타일 바인딩
 - 학습한 문법을 조합한 날씨 Mockup 구현
+- 실습 내용이 많아짐에 따라 Vue Router로 학습 페이지 분리
 
 ## 기술 스택
 
@@ -64,18 +65,49 @@ src/
 │   └── practice.css
 ├── components/
 │   └── practices/
-│       └── basic/
-│           ├── SampleOne.vue
-│           ├── Vue*.vue
-│           ├── Event*.vue
-│           ├── Model*.vue
-│           ├── StyleScoped.vue
-│           └── WeatherMockup.vue
+│       ├── basic/
+│       │   ├── SampleOne.vue
+│       │   ├── Vue*.vue
+│       │   ├── Event*.vue
+│       │   ├── Model*.vue
+│       │   ├── StyleScoped.vue
+│       │   └── WeatherMockup.vue
+│       ├── composition/
+│       │   ├── Reactive*.vue
+│       │   ├── ComputedBasic.vue
+│       │   └── Watchers*.vue
+│       └── component/
+│           ├── Lifecycle*.vue
+│           ├── PropsEmits*.vue
+│           └── Slot*.vue
 ├── router/
+│   └── index.js
 └── views/
+    ├── BasicPracticeView.vue
+    ├── Practice2.vue
+    └── WeatherView.vue
 ```
 
-`App.vue`에서 각 학습 컴포넌트를 불러와 한 화면에 순서대로 렌더링합니다. 개별 예제는 `src/components/practices/basic`에 있습니다.
+실습 내용이 많아져 모든 컴포넌트를 `App.vue` 한 화면에 계속 추가하기 어려워졌습니다. 이를 해결하기 위해 Vue Router를 사용해 주제별 페이지로 분리했습니다. `App.vue`는 공통 메뉴와 `RouterView`만 담당하고, 각 View 컴포넌트가 필요한 실습 컴포넌트를 묶어서 렌더링합니다.
+
+| URL | View | 내용 |
+| --- | --- | --- |
+| `/` | 리다이렉트 | `/practice`로 자동 이동 |
+| `/practice` | `BasicPracticeView.vue` | 디렉티브, 이벤트, 폼, 스타일 기본 실습 |
+| `/practice2` | `Practice2.vue` | Composition API, Watcher, 생명주기, Props/Emits, Slot 실습 |
+| `/weather` | `WeatherView.vue` | 날씨 Mockup 종합 과제 |
+
+라우트 컴포넌트는 동적 `import()`로 불러옵니다. 사용자가 해당 URL에 접근할 때 필요한 페이지 코드를 로드하므로 페이지별 코드도 별도 번들로 분리됩니다.
+
+```js
+{
+  path: '/practice2',
+  name: 'practice2',
+  component: () => import('../views/Practice2.vue'),
+}
+```
+
+새 실습을 추가할 때는 View 파일을 만들고 `src/router/index.js`에 route를 등록한 뒤, `App.vue`의 내비게이션에 `RouterLink`를 추가합니다.
 
 ## 학습 내용 정리
 
@@ -287,12 +319,13 @@ text <─ @input ─── 입력창
 5. 이벤트는 자식에서 부모로 버블링되며 `.stop`, `.self`, `.prevent`로 필요한 동작을 명확하게 제어할 수 있습니다.
 6. `v-for`의 데이터 별칭에는 유효 범위가 있고, 반복 항목에는 안정적인 고유 `key`가 필요합니다.
 7. `v-memo`의 의존성 배열에는 해당 영역의 갱신에 필요한 반응형 값을 빠짐없이 넣어야 합니다.
+8. 실습 규모가 커지면 View 단위로 나누고 Vue Router로 URL을 연결해 `App.vue`의 역할을 공통 레이아웃으로 제한할 수 있습니다.
 
 ## 다음 학습 목표
 
 - `computed()`를 사용한 날씨 도시 검색 필터 구현
 - props와 emit을 사용해 날씨 카드 컴포넌트 분리
 - Pinia를 사용한 전역 상태 관리
-- Vue Router를 사용한 실습 페이지 분리
+- 중첩 라우트와 동적 라우트 파라미터 학습
 - API 요청을 통한 실제 날씨 데이터 연동
 - 컴포넌트 단위 테스트 작성

@@ -15,6 +15,9 @@ const searchQuery = ref('')
 // 사용자가 클릭한 도시의 전체 정보를 저장 (아직 선택하지 않았으므로 null)
 const selectedCityInfo = ref(null)
 
+// 5번 추가 기능: 사용자가 선택한 온도 단위
+const temperatureUnit = ref('celsius')
+
 // 3. computed 검색 기능
 // searchQuery 또는 weatherList가 바뀌면 조건에 맞는 도시 목록을 다시 계산함
 // 아무것도 입력하지 않았을 때는 전체 날씨 목록을 반환함
@@ -26,6 +29,26 @@ const filteredWeatherList = computed(() => {
   }
 
   return weatherList.value.filter((city) => city.name.includes(keyword))
+})
+
+// 검색된 도시 목록에 현재 온도 단위에 맞는 표시용 온도와 기호를 추가함
+// 원본 temp는 더움/선선함 판단을 위해 그대로 유지함
+const displayedWeatherList = computed(() => {
+  return filteredWeatherList.value.map((city) => {
+    if (temperatureUnit.value === 'fahrenheit') {
+      return {
+        ...city,
+        displayTemp: Math.round(((city.temp * 9) / 5 + 32) * 10) / 10,
+        unit: '℉',
+      }
+    }
+
+    return {
+      ...city,
+      displayTemp: city.temp,
+      unit: '℃',
+    }
+  })
 })
 
 // 5. watchEffect 검색어 자동 감시
@@ -54,6 +77,16 @@ watch(selectedCityInfo, (newCity, oldCity) => {
   console.log(`[watch 감지] ${oldCityName}에서 ${newCityName}(으)로 선택이 변경되었습니다.`)
 })
 
+// 온도 단위가 실제로 변경될 때마다 이전 단위와 새 단위를 콘솔에 기록함
+watch(temperatureUnit, (newUnit, oldUnit) => {
+  const unitNames = {
+    celsius: '섭씨',
+    fahrenheit: '화씨',
+  }
+
+  console.log(`[온도 단위 변경] ${unitNames[oldUnit]}에서 ${unitNames[newUnit]}(으)로 변경`)
+})
+
 // 한글 조합 중에도 입력값을 바로 반영
 const handleSearch = (event) => {
   searchQuery.value = event.target.value
@@ -80,6 +113,23 @@ const showDetail = (cityName, status) => {
         placeholder="검색할 도시 이름 입력"
       />
       <p>검색 중인 도시: {{ searchQuery }}</p>
+
+      <!-- 직접 추가한 반응형 상태: 선택한 단위에 따라 computed 온도가 변경됨 -->
+      <div class="unit-controls">
+        <span>온도 단위:</span>
+        <button
+          :class="{ active: temperatureUnit === 'celsius' }"
+          @click="temperatureUnit = 'celsius'"
+        >
+          섭씨(℃)
+        </button>
+        <button
+          :class="{ active: temperatureUnit === 'fahrenheit' }"
+          @click="temperatureUnit = 'fahrenheit'"
+        >
+          화씨(℉)
+        </button>
+      </div>
     </section>
 
     <!-- 날씨 목록 영역 -->
@@ -87,14 +137,14 @@ const showDetail = (cityName, status) => {
       <h3>🌆 지역별 날씨 현황</h3>
 
       <div
-        v-for="city in filteredWeatherList"
+        v-for="city in displayedWeatherList"
         :key="city.id"
         class="weather-card"
         @click="selectCity(city)"
       >
         <div>
           <strong>{{ city.name }} ({{ city.status }})</strong>
-          <p>현재 기온: {{ city.temp }}℃</p>
+          <p>현재 기온: {{ city.displayTemp }}{{ city.unit }}</p>
 
           <span v-if="city.temp >= 25" class="temperature-label hot">
             🔥 더움 (25도 이상)
@@ -136,6 +186,27 @@ const showDetail = (cityName, status) => {
   padding: 10px;
   border: 1px solid #bcc6d0;
   border-radius: 5px;
+}
+
+.unit-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.unit-controls button {
+  padding: 6px 10px;
+  border: 1px solid #adb5bd;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.unit-controls button.active {
+  border-color: #42b883;
+  background-color: #42b883;
+  color: white;
 }
 
 .weather-card {

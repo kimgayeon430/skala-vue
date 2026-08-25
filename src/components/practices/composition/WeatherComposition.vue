@@ -9,6 +9,16 @@ const weatherList = ref([
   { id: 'city_04', name: '제주', temp: 23, status: '바람' },
 ])
 
+// localStorage 값이 없거나 손상되어도 빈 배열로 안전하게 시작함
+const loadFavoriteCities = () => {
+  try {
+    const savedFavorites = JSON.parse(localStorage.getItem('favoriteCities') ?? '[]')
+    return Array.isArray(savedFavorites) ? savedFavorites : []
+  } catch {
+    return []
+  }
+}
+
 // 검색창에 입력한 도시 이름을 저장하는 반응형 상태
 const searchQuery = ref('')
 
@@ -17,6 +27,9 @@ const selectedCityInfo = ref(null)
 
 // 5번 추가 기능: 사용자가 선택한 온도 단위
 const temperatureUnit = ref('celsius')
+
+// 즐겨찾기한 도시의 고유 ID를 저장하고, 새로고침 시 localStorage 값으로 복원함
+const favoriteCities = ref(loadFavoriteCities())
 
 // 3. computed 검색 기능
 // searchQuery 또는 weatherList가 바뀌면 조건에 맞는 도시 목록을 다시 계산함
@@ -49,6 +62,21 @@ const displayedWeatherList = computed(() => {
       unit: '℃',
     }
   })
+})
+
+// 전체 날씨 중 favoriteCities에 ID가 포함된 도시만 추출함
+const favoriteWeatherList = computed(() => {
+  return weatherList.value.filter((city) => favoriteCities.value.includes(city.id))
+})
+
+// reduce로 즐겨찾기 도시의 섭씨 기온 합계를 구한 뒤 평균을 계산함
+const favoriteAvgTemp = computed(() => {
+  if (favoriteWeatherList.value.length === 0) {
+    return 0
+  }
+
+  const totalTemp = favoriteWeatherList.value.reduce((sum, city) => sum + city.temp, 0)
+  return Math.round((totalTemp / favoriteWeatherList.value.length) * 10) / 10
 })
 
 // 5. watchEffect 검색어 자동 감시
@@ -86,6 +114,33 @@ watch(temperatureUnit, (newUnit, oldUnit) => {
 
   console.log(`[온도 단위 변경] ${unitNames[oldUnit]}에서 ${unitNames[newUnit]}(으)로 변경`)
 })
+
+// push와 splice로 배열 내부가 바뀌는 경우도 감지하도록 deep 옵션을 사용함
+// 변경된 ID 배열을 문자열로 변환해 localStorage에 저장하므로 새로고침 후에도 유지됨
+watch(
+  favoriteCities,
+  (newFavorites) => {
+    localStorage.setItem('favoriteCities', JSON.stringify(newFavorites))
+
+    const favoriteNames = favoriteWeatherList.value.map((city) => city.name)
+    console.log(
+      `[즐겨찾기 변경 및 저장] 현재 즐겨찾기: ${favoriteNames.join(', ') || '없음'} / 저장된 ID: ${newFavorites.join(', ') || '없음'}`,
+    )
+  },
+  { deep: true },
+)
+
+// 이미 즐겨찾기된 ID면 제거하고, 아니면 배열에 추가함
+const toggleFavorite = (cityId) => {
+  const favoriteIndex = favoriteCities.value.indexOf(cityId)
+
+  if (favoriteIndex === -1) {
+    favoriteCities.value.push(cityId)
+    return
+  }
+
+  favoriteCities.value.splice(favoriteIndex, 1)
+}
 
 // 한글 조합 중에도 입력값을 바로 반영
 const handleSearch = (event) => {
@@ -146,17 +201,35 @@ const showDetail = (cityName, status) => {
           <strong>{{ city.name }} ({{ city.status }})</strong>
           <p>현재 기온: {{ city.displayTemp }}{{ city.unit }}</p>
 
-          <span v-if="city.temp >= 25" class="temperature-label hot">
-            🔥 더움 (25도 이상)
-          </span>
+          <span v-if="city.temp >= 25" class="temperature-label hot"> 🔥 더움 (25도 이상) </span>
           <span v-else class="temperature-label cool">❄️ 선선함 (25도 미만)</span>
         </div>
 
-        <button @click.stop="showDetail(city.name, city.status)">상세보기</button>
+        <div class="card-actions">
+          <!-- .stop으로 즐겨찾기 클릭 시 부모 카드의 도시 선택 이벤트를 막음 -->
+          <button
+            class="favorite-button"
+            :class="{ active: favoriteCities.includes(city.id) }"
+            @click.stop="toggleFavorite(city.id)"
+          >
+            {{ favoriteCities.includes(city.id) ? '★ 즐겨찾기 해제' : '☆ 즐겨찾기' }}
+          </button>
+          <button @click.stop="showDetail(city.name, city.status)">상세보기</button>
+        </div>
       </div>
 
       <!-- 검색어와 일치하는 도시가 없을 때 안내 문구 표시 -->
       <p v-if="filteredWeatherList.length === 0">검색 결과와 일치하는 도시가 없습니다.</p>
+    </section>
+
+    <!-- 즐겨찾기 목록과 computed로 계산한 평균 기온 요약 -->
+    <section class="weather-box favorite-summary">
+      <h3>⭐ 즐겨찾기 요약</h3>
+      <template v-if="favoriteWeatherList.length">
+        <p>도시: {{ favoriteWeatherList.map((city) => city.name).join(', ') }}</p>
+        <p>평균 기온(섭씨): {{ favoriteAvgTemp }}℃</p>
+      </template>
+      <p v-else>즐겨찾기한 도시가 없습니다.</p>
     </section>
 
     <!-- 선택한 도시가 있으면 도시 이름을, 없으면 안내 문구를 표시 -->
@@ -233,6 +306,11 @@ const showDetail = (cityName, status) => {
   margin: 6px 0;
 }
 
+.card-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .temperature-label {
   display: inline-block;
   padding: 4px 8px;
@@ -255,6 +333,21 @@ const showDetail = (cityName, status) => {
   border-radius: 4px;
   background-color: white;
   cursor: pointer;
+}
+
+.weather-card .favorite-button.active {
+  border-color: #f5b301;
+  background-color: #fff8db;
+  color: #8a6200;
+}
+
+.favorite-summary {
+  border-color: #f5d76e;
+  background-color: #fffdf2;
+}
+
+.favorite-summary p:last-child {
+  margin-bottom: 0;
 }
 
 .selected-message {

@@ -85,7 +85,8 @@ src/
 └── views/
     ├── BasicPracticeView.vue
     ├── Practice2.vue
-    └── WeatherView.vue
+    ├── WeatherView.vue
+    └── WeatherCompositionView.vue
 ```
 
 실습 내용이 많아져 모든 컴포넌트를 `App.vue` 한 화면에 계속 추가하기 어려워졌습니다. 이를 해결하기 위해 Vue Router를 사용해 주제별 페이지로 분리했습니다. `App.vue`는 공통 메뉴와 `RouterView`만 담당하고, 각 View 컴포넌트가 필요한 실습 컴포넌트를 묶어서 렌더링합니다.
@@ -96,6 +97,7 @@ src/
 | `/practice` | `BasicPracticeView.vue` | 디렉티브, 이벤트, 폼, 스타일 기본 실습 |
 | `/practice2` | `Practice2.vue` | Composition API, Watcher, 생명주기, Props/Emits, Slot 실습 |
 | `/weather` | `WeatherView.vue` | 날씨 Mockup 종합 과제 |
+| `/weather-composition` | `WeatherCompositionView.vue` | computed와 watch를 적용한 날씨 Composition 과제 |
 
 라우트 컴포넌트는 동적 `import()`로 불러옵니다. 사용자가 해당 URL에 접근할 때 필요한 페이지 코드를 로드하므로 페이지별 코드도 별도 번들로 분리됩니다.
 
@@ -128,6 +130,42 @@ const increase = () => {
 - 일반 변수는 값이 바뀌어도 Vue가 변경을 추적하지 않기 때문에 화면 갱신을 보장하지 않습니다.
 
 관련 예제: `SampleOne.vue`, `SampleTwo.vue`
+
+#### 일반 함수와 `computed`
+
+- 일반 함수는 템플릿에서 호출하면 컴포넌트가 다시 렌더링될 때마다 실행됩니다.
+- `computed`는 계산에 사용한 반응형 값을 의존성으로 기억하고 결과를 캐싱합니다.
+- 의존성이 변경되면 다시 계산하고, 관계없는 상태만 변경되면 이전 결과를 재사용합니다.
+- 함수가 다시 실행돼도 계산에 사용한 값이 그대로라면 화면의 결과값은 바뀌지 않습니다.
+
+예를 들어 `count * 2`를 계산할 때 `dummy`만 증가하면 일반 함수는 렌더링 과정에서 다시 실행되지만 `count`가 같아 결과도 같습니다. `computed`는 의존성인 `count`가 바뀌지 않았으므로 재실행하지 않고 캐시된 결과를 사용합니다.
+
+관련 예제: `ComputedBasic.vue`
+
+#### `watch`와 `watchEffect`
+
+`watch`는 지정한 반응형 값이 실제로 변경됐을 때 필요한 작업을 실행합니다. 버튼 클릭을 감시하는 것이 아니라 버튼을 눌러 바뀐 상태를 감시한다는 점이 중요했습니다. 같은 값을 다시 선택하면 상태가 바뀌지 않았기 때문에 콜백도 실행되지 않습니다.
+
+```js
+watch(currentCity, (newValue, oldValue) => {
+  console.log(`${oldValue}에서 ${newValue}로 변경`)
+})
+```
+
+- 하나의 `ref`뿐 아니라 `[city, dateType]`처럼 여러 값을 배열로 묶어 감시할 수 있습니다.
+- 객체 내부 속성 전체를 감시할 때는 `{ deep: true }`를 사용합니다.
+- 객체 전체가 아니라 특정 속성만 필요하면 `() => user.value.age`처럼 getter 함수로 감시하는 편이 명확합니다.
+- `watch`는 API 재요청, 로그 기록, 저장처럼 값이 바뀐 뒤 실행해야 하는 작업에 사용하기 좋았습니다.
+
+`watchEffect`는 감시할 값을 따로 적지 않고, 함수 안에서 사용한 반응형 값을 자동으로 추적합니다. `watch`와 달리 처음에도 한 번 바로 실행되고, 추적 중인 값이 바뀔 때마다 다시 실행됩니다.
+
+```js
+watchEffect(() => {
+  console.log(searchQuery.value)
+})
+```
+
+관련 예제: `WatchersBasic.vue`, `WatchersMulti.vue`, `WatchersDeep.vue`, `WeatherComposition.vue`
 
 ### 2. Vue 디렉티브
 
@@ -310,6 +348,19 @@ text <─ @input ─── 입력창
 
 현재 검색창은 입력한 도시명을 상태에 저장하고 화면에 표시하는 학습용 기능입니다. 실제 목록 필터링은 이후 `computed()`와 `Array.prototype.filter()`를 활용해 확장할 수 있습니다.
 
+## 종합 과제: Weather Composition
+
+기존 날씨 Mockup을 유지하면서 `computed`, `watch`, `watchEffect`를 적용한 두 번째 날씨 페이지를 별도로 만들었습니다.
+
+- `filteredWeatherList` computed로 검색어가 포함된 도시만 화면에 출력
+- 검색어가 비어 있으면 전체 목록을 반환하고, 결과가 없으면 안내 문구 표시
+- 카드 클릭 시 도시 객체 전체를 `selectedCityInfo`에 저장
+- `watch`로 선택 도시가 바뀌기 전과 바뀐 후의 값을 콘솔에 기록
+- `watchEffect`로 검색어와 필터 결과를 자동 추적하여 콘솔에 기록
+- `/weather-composition` 라우트로 기존 날씨 과제와 분리
+
+실습하면서 `computed`는 화면에 사용할 새로운 값을 만드는 역할이고, `watch`와 `watchEffect`는 상태가 바뀐 뒤 추가 작업을 실행하는 역할이라는 차이를 확인했습니다.
+
 ## 공부하며 이해한 핵심
 
 1. Vue 화면의 기준은 DOM 자체가 아니라 반응형 상태입니다.
@@ -320,10 +371,12 @@ text <─ @input ─── 입력창
 6. `v-for`의 데이터 별칭에는 유효 범위가 있고, 반복 항목에는 안정적인 고유 `key`가 필요합니다.
 7. `v-memo`의 의존성 배열에는 해당 영역의 갱신에 필요한 반응형 값을 빠짐없이 넣어야 합니다.
 8. 실습 규모가 커지면 View 단위로 나누고 Vue Router로 URL을 연결해 `App.vue`의 역할을 공통 레이아웃으로 제한할 수 있습니다.
+9. `computed`는 파생 값을 만들고 캐싱하며, `watch`는 지정한 상태 변경 이후의 작업을 처리합니다.
+10. `watchEffect`는 함수 내부에서 사용한 반응형 값을 자동 추적하고 처음에도 즉시 실행됩니다.
 
 ## 다음 학습 목표
 
-- `computed()`를 사용한 날씨 도시 검색 필터 구현
+- 날씨 검색에서 대소문자와 공백 등 다양한 입력 조건 처리
 - props와 emit을 사용해 날씨 카드 컴포넌트 분리
 - Pinia를 사용한 전역 상태 관리
 - 중첩 라우트와 동적 라우트 파라미터 학습

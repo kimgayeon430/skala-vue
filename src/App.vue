@@ -4,6 +4,7 @@
       <RouterLink to="/practice">기본 실습</RouterLink>
       <RouterLink to="/practice2">Composition API</RouterLink>
       <RouterLink to="/weather">날씨 과제</RouterLink>
+      <RouterLink to="/weather-composition">날씨 Composition</RouterLink>
     </nav>
   </header>
 

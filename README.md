@@ -368,9 +368,27 @@ const sendNotification = () => {
 }
 ```
 
-자식이 이벤트를 보내면 부모의 `handleUpdateRequest`가 payload를 받아 `message`를 변경합니다. 변경된 값은 다시 Props를 통해 자식에게 전달됩니다. 이를 통해 **Props는 부모에서 자식으로, Emits는 자식에서 부모로 전달된다**는 단방향 데이터 흐름을 확인했습니다.
+처음에는 버튼을 누르면 자식이 미리 정해진 문자열을 보내는 방식이었습니다. 여기에 자식의 `inputMessage`와 `v-model` 입력창을 추가하여 사용자가 입력한 값을 payload로 보내고, 전송 후 입력창을 비우도록 확장했습니다. 이 과정에서 같은 이벤트라도 payload에 따라 부모 상태가 다르게 변경되고, 변경 결과가 다시 Props로 자식 화면에 반영되는 전체 왕복 흐름을 확인했습니다.
+
+이를 통해 **Props는 부모에서 자식으로 값을 전달하고, Emits는 자식에서 부모로 변경을 요청한다**는 단방향 데이터 흐름을 연습했습니다.
 
 관련 예제: `PropsEmitsParent.vue`, `PropsEmitsChild.vue`
+
+### 7. Slot
+
+Slot은 부모가 작성한 화면 내용을 자식 컴포넌트의 지정된 위치에 전달하는 기능입니다. 기본 Slot으로 본문을 전달하고, Named Slot으로 `header`, `footer`처럼 여러 영역을 구분하며, Scoped Slot으로 자식의 데이터를 부모가 만든 화면에서 사용하는 방법을 공부했습니다.
+
+Named Slot 실습에는 `footer` 영역을 직접 추가했습니다. 부모가 `#footer`로 전달한 버튼에서 부모의 함수를 실행해 슬롯 콘텐츠가 부모의 범위를 사용한다는 점을 확인했고, footer를 전달하지 않은 카드에서는 자식이 정한 fallback 콘텐츠가 표시되도록 만들었습니다.
+
+`Footer fallback 확인용 카드입니다.`는 이름이 없어서 기본 `<slot>`에 들어가고, 같은 카드에 `#footer` 내용은 전달하지 않았기 때문에 `기본 footer입니다.`라는 footer fallback도 함께 표시됩니다. fallback은 컴포넌트 전체가 비었을 때가 아니라 **해당 슬롯에 전달된 내용이 없을 때** 표시됩니다.
+
+```text
+부모의 #header → 자식의 <slot name="header">
+부모의 기본 내용 → 자식의 <slot>
+부모의 #footer → 자식의 <slot name="footer">
+```
+
+관련 예제: `SlotDefault*.vue`, `SlotNamed*.vue`, `SlotScoped*.vue`
 
 ## 종합 과제: Weather Mockup
 
@@ -440,6 +458,7 @@ localStorage는 배열을 직접 저장할 수 없기 때문에 저장할 때 `J
 11. 원본 상태를 직접 바꾸지 않고 `computed`로 화면에 필요한 형태를 만들어 사용할 수 있습니다.
 12. 배열 내부 변경을 `watch`로 감시하려면 `{ deep: true }`가 필요하며, localStorage에는 JSON 문자열로 변환해서 저장해야 합니다.
 13. 부모는 Props로 자식에게 값을 전달하고, 자식은 Emit으로 부모에게 상태 변경을 요청합니다.
+14. Slot은 부모가 콘텐츠를 만들고 자식이 표시 위치를 정하며, Named Slot과 fallback으로 영역별 기본 화면을 구성할 수 있습니다.
 
 ## 다음 학습 목표
 

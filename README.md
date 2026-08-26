@@ -10,6 +10,7 @@ Vue 3의 기본 문법을 작은 예제로 직접 실행해 보고, 배운 내�
 - Vue 디렉티브를 이용한 텍스트, HTML, 속성, 조건 및 반복 렌더링
 - DOM 이벤트 객체와 이벤트 전파 과정 실습
 - `v-model`의 양방향 바인딩 원리와 폼 요소별 동작 비교
+- Props와 Emits를 이용한 부모·자식 컴포넌트 간 데이터 전달
 - scoped CSS와 동적 클래스 및 스타일 바인딩
 - 학습한 문법을 조합한 날씨 Mockup 구현
 - 실습 내용이 많아짐에 따라 Vue Router로 학습 페이지 분리
@@ -331,6 +332,46 @@ text <─ @input ─── 입력창
 
 관련 예제: `StyleScoped.vue`, `VueBindClass.vue`, `VueBindStyle.vue`
 
+### 6. Props와 Emits
+
+부모 컴포넌트는 Props로 자식에게 데이터를 전달하고, 자식 컴포넌트는 Emit으로 부모에게 이벤트와 데이터를 전달합니다. 실제 상태는 부모가 관리하며 자식은 전달받은 Props를 직접 수정하지 않습니다.
+
+```text
+부모 message ── Props ──> 자식 parentData
+부모 핸들러  <── Emit ─── 자식 입력값
+```
+
+부모는 `:parent-data`로 값을 전달하고 `@update-request`로 자식의 커스텀 이벤트를 받습니다.
+
+```vue
+<PropsEmitsChild
+  :parent-data="message"
+  @update-request="handleUpdateRequest"
+/>
+```
+
+자식은 `defineProps()`로 받을 데이터를 선언합니다. 입력값을 부모에게 보낼 때는 `emit()`의 첫 번째 인자로 이벤트 이름을, 두 번째 인자로 payload를 전달합니다.
+
+```js
+defineProps({
+  parentData: {
+    type: String,
+    required: true,
+  },
+})
+
+const emit = defineEmits(['update-request'])
+const inputMessage = ref('')
+
+const sendNotification = () => {
+  emit('update-request', inputMessage.value)
+}
+```
+
+자식이 이벤트를 보내면 부모의 `handleUpdateRequest`가 payload를 받아 `message`를 변경합니다. 변경된 값은 다시 Props를 통해 자식에게 전달됩니다. 이를 통해 **Props는 부모에서 자식으로, Emits는 자식에서 부모로 전달된다**는 단방향 데이터 흐름을 확인했습니다.
+
+관련 예제: `PropsEmitsParent.vue`, `PropsEmitsChild.vue`
+
 ## 종합 과제: Weather Mockup
 
 `WeatherMockup.vue`는 앞에서 학습한 문법을 함께 사용하는 날씨 화면입니다.
@@ -398,11 +439,12 @@ localStorage는 배열을 직접 저장할 수 없기 때문에 저장할 때 `J
 10. `watchEffect`는 함수 내부에서 사용한 반응형 값을 자동 추적하고 처음에도 즉시 실행됩니다.
 11. 원본 상태를 직접 바꾸지 않고 `computed`로 화면에 필요한 형태를 만들어 사용할 수 있습니다.
 12. 배열 내부 변경을 `watch`로 감시하려면 `{ deep: true }`가 필요하며, localStorage에는 JSON 문자열로 변환해서 저장해야 합니다.
+13. 부모는 Props로 자식에게 값을 전달하고, 자식은 Emit으로 부모에게 상태 변경을 요청합니다.
 
 ## 다음 학습 목표
 
 - 날씨 검색에서 대소문자와 공백 등 다양한 입력 조건 처리
-- props와 emit을 사용해 날씨 카드 컴포넌트 분리
+- props와 emit을 사용해 날씨 카드 컴포넌트로 확장
 - Pinia를 사용한 전역 상태 관리
 - 중첩 라우트와 동적 라우트 파라미터 학습
 - API 요청을 통한 실제 날씨 데이터 연동

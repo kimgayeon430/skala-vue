@@ -443,6 +443,22 @@ Named Slot 실습에는 `footer` 영역을 직접 추가했습니다. 부모가 
 
 localStorage는 배열을 직접 저장할 수 없기 때문에 저장할 때 `JSON.stringify()`를 사용하고, 불러올 때 `JSON.parse()`를 사용했습니다. 즐겨찾기가 하나도 없을 때는 평균 계산 과정에서 0으로 나누지 않도록 `0`을 반환합니다.
 
+## 종합 과제: Weather Router
+
+과제 3에서 분리한 날씨 컴포넌트를 활용해 대시보드, 서비스 소개, 도시 상세, 즐겨찾기 페이지를 Vue Router로 연결했습니다. 과제별 URL을 구분하기 위해 모든 화면을 `/weather-router` 아래에 모았습니다. 상세보기 버튼에서는 기존 `window.alert()` 대신 `router.push()`를 사용하고, `/weather-router/:cityId`의 동적 파라미터로 선택한 도시의 Mock Data를 찾아 보여주도록 변경했습니다. 존재하지 않는 주소는 Catch-all Route로 404 페이지에 연결하고, 각 View는 동적 `import()`로 지연 로딩했습니다.
+
+과제 4에서도 카드에 즐겨찾기 버튼을 추가해 직접 기록할 수 있도록 만들었습니다. 과제 3의 기록을 그대로 가져오지 않도록 별도의 `weatherRouterFavorites` 키에 도시 ID를 저장했고, `/weather-router/favorites` 페이지에서는 과제 4에서 선택한 도시만 불러와 상세 페이지로 이동할 수 있게 했습니다.
+
+```text
+과제 4 카드에서 즐겨찾기 클릭
+→ favoriteCities 배열에 도시 ID 추가 또는 제거
+→ weatherRouterFavorites에 별도 저장
+→ /weather-router/favorites에서 과제 4의 기록만 표시
+→ 도시 클릭 시 /weather-router/:cityId로 이동
+```
+
+관련 예제: `WeatherHomeView.vue`, `WeatherDetailView.vue`, `WeatherAboutView.vue`, `WeatherFavoritesView.vue`, `NotFoundView.vue`
+
 ## 공부하며 이해한 핵심
 
 1. Vue 화면의 기준은 DOM 자체가 아니라 반응형 상태입니다.
@@ -459,6 +475,7 @@ localStorage는 배열을 직접 저장할 수 없기 때문에 저장할 때 `J
 12. 배열 내부 변경을 `watch`로 감시하려면 `{ deep: true }`가 필요하며, localStorage에는 JSON 문자열로 변환해서 저장해야 합니다.
 13. 부모는 Props로 자식에게 값을 전달하고, 자식은 Emit으로 부모에게 상태 변경을 요청합니다.
 14. Slot은 부모가 콘텐츠를 만들고 자식이 표시 위치를 정하며, Named Slot과 fallback으로 영역별 기본 화면을 구성할 수 있습니다.
+15. 동적 라우트의 파라미터로 상세 데이터를 선택할 수 있고, 기능별 저장 키를 나누면 과제마다 독립된 localStorage 상태를 관리할 수 있습니다.
 
 ## 다음 학습 목표
 

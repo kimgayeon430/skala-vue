@@ -27,6 +27,36 @@ const router = createRouter({
       name: 'weather-composition',
       component: () => import('../views/WeatherCompositionView.vue'),
     },
+    {
+      path: '/weather-component',
+      name: 'weather-component',
+      component: () => import('../views/WeatherComponentView.vue'),
+    },
+    {
+      path: '/weather-router',
+      name: 'weather-router-home',
+      component: () => import('../views/WeatherHomeView.vue'),
+    },
+    {
+      path: '/weather-router/about',
+      name: 'weather-router-about',
+      component: () => import('../views/WeatherAboutView.vue'),
+    },
+    {
+      path: '/weather-router/favorites',
+      name: 'weather-router-favorites',
+      component: () => import('../views/WeatherFavoritesView.vue'),
+    },
+    {
+      path: '/weather-router/:cityId',
+      name: 'weather-detail',
+      component: () => import('../views/WeatherDetailView.vue'),
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFoundView.vue'),
+    },
   ],
 })
 

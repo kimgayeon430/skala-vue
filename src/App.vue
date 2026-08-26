@@ -3,8 +3,10 @@
     <nav class="app-nav" aria-label="주요 메뉴">
       <RouterLink to="/practice">기본 실습</RouterLink>
       <RouterLink to="/practice2">Composition API</RouterLink>
-      <RouterLink to="/weather">날씨 과제</RouterLink>
-      <RouterLink to="/weather-composition">날씨 Composition</RouterLink>
+      <RouterLink to="/weather">과제 1 (Mockup)</RouterLink>
+      <RouterLink to="/weather-composition">과제 2 (Composition)</RouterLink>
+      <RouterLink to="/weather-component">과제 3 (Component)</RouterLink>
+      <RouterLink to="/weather-router">과제 4 (Router)</RouterLink>
     </nav>
   </header>
 
@@ -26,6 +28,7 @@
 
 .app-nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   max-width: 1200px;
   margin: 0 auto;

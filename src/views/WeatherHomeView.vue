@@ -47,6 +47,20 @@ const updateQuery = (newQuery) => {
   searchQuery.value = newQuery
 }
 
+const searchCity = () => {
+  const keyword = searchQuery.value.trim()
+
+  if (!keyword) {
+    return
+  }
+
+  const city = weatherList.value.find((weather) => weather.name.includes(keyword))
+
+  if (city) {
+    moveToDetail(city)
+  }
+}
+
 const selectCity = (city) => {
   selectedCityInfo.value = city
 }
@@ -99,7 +113,11 @@ onMounted(() => {
       </div>
 
       <BaseDashboardCard title="🔍 도시 검색">
-        <SearchBar :search-query="searchQuery" @update-query="updateQuery" />
+        <SearchBar
+          :search-query="searchQuery"
+          @update-query="updateQuery"
+          @search="searchCity"
+        />
       </BaseDashboardCard>
 
       <BaseDashboardCard title="🌆 지역별 날씨 현황">

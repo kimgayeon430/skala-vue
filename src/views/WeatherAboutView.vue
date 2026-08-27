@@ -14,13 +14,13 @@ const configStore = useConfigStore()
     <div class="practice-section">
       <h2>ℹ️ 서비스 소개</h2>
 
-      <div class="intro-panel">
-        <strong>Vue.js 날씨 종합실습</strong>
+      <section class="about-card intro-card">
+        <h3>🌤️ Vue.js 날씨 종합실습</h3>
         <p>
           Vue.js 수업에서 배운 컴포넌트, Router, Pinia, Axios를 하나의 날씨
           대시보드에 적용했습니다.
         </p>
-      </div>
+      </section>
 
       <div class="about-grid">
         <section class="about-card">
@@ -68,19 +68,6 @@ const configStore = useConfigStore()
 </template>
 
 <style scoped>
-.intro-panel {
-  padding: 18px;
-  margin-bottom: 14px;
-  border-left: 4px solid #42b883;
-  border-radius: 8px;
-  background-color: #f8fafc;
-}
-
-.intro-panel p {
-  margin: 8px 0 0;
-  color: #52616b;
-}
-
 .about-grid {
   display: grid;
   gap: 12px;
@@ -92,6 +79,10 @@ const configStore = useConfigStore()
   border: 1px solid #dfe5eb;
   border-radius: 8px;
   background-color: white;
+}
+
+.intro-card {
+  margin-bottom: 12px;
 }
 
 .about-card h3 {

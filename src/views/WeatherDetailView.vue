@@ -1,10 +1,28 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useConfigStore } from '@/stores/configStore'
 
 const route = useRoute()
 const router = useRouter()
 const selectedWeather = ref(null)
+
+const configStore = useConfigStore()
+
+const displayTemp = computed(() => {
+  const rawTemp = selectedWeather.value?.temp
+
+  if (rawTemp == null) {
+    return ''
+  }
+
+  if (configStore.unit === 'fahrenheit') {
+    return Math.round((rawTemp * 9) / 5 + 32)
+  }
+
+  return rawTemp
+})
 
 // 실제 API 대신 도시 코드별 상세 Mock Data를 사용합니다.
 const weatherDetails = [
@@ -50,7 +68,7 @@ onMounted(() => {
 
 <template>
   <div class="practice-container">
-    <h1>Weather Router</h1>
+    <h1>Weather Dashboard</h1>
     <hr />
 
     <div class="practice-section">
@@ -58,7 +76,7 @@ onMounted(() => {
 
       <div v-if="selectedWeather" class="detail-panel">
         <p>📍 지정 지역: {{ selectedWeather.name }}</p>
-        <p>실시간 기온: {{ selectedWeather.temp }}℃</p>
+        <p>실시간 기온: {{ displayTemp }}{{ configStore.unitSymbol }}</p>
         <p>기상 현황: {{ selectedWeather.status }}</p>
         <p>대기 습도: {{ selectedWeather.humidity }}%</p>
         <p>현재 풍속: {{ selectedWeather.windSpeed }}m/s</p>

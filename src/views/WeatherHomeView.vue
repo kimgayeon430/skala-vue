@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import BaseDashboardCard from '@/components/weather/BaseDashboardCard.vue'
 import SearchBar from '@/components/weather/SearchBar.vue'
 import WeatherCard from '@/components/weather/WeatherCard.vue'
+import UnitToggler from '@/components/weather/UnitToggler.vue'
 
 const router = useRouter()
 
@@ -75,17 +76,21 @@ const moveToDetail = (city) => {
 
 <template>
   <div class="practice-container">
-    <h1>Weather Router</h1>
+    <h1>Weather Dashboard</h1>
     <hr />
 
     <div class="practice-section">
-      <h2>🌤️ 과제 4: 라우터 적용</h2>
+      <h2>🌤️ 과제 5: 스토어 적용</h2>
 
-      <nav class="weather-nav" aria-label="날씨 서비스 메뉴">
-        <RouterLink to="/weather-router">🌦️ 날씨 대시보드</RouterLink>
-        <RouterLink to="/weather-router/about">ℹ️ 서비스 소개</RouterLink>
-        <RouterLink to="/weather-router/favorites">⭐ 즐겨찾기 지역</RouterLink>
-      </nav>
+      <div class="navigation-row">
+        <nav class="weather-nav" aria-label="날씨 서비스 메뉴">
+          <RouterLink to="/weather-router">🌦️ 날씨 대시보드</RouterLink>
+          <RouterLink to="/weather-router/about">ℹ️ 서비스 소개</RouterLink>
+          <RouterLink to="/weather-router/favorites">⭐ 즐겨찾기 지역</RouterLink>
+        </nav>
+
+        <UnitToggler />
+      </div>
 
       <BaseDashboardCard title="🔍 도시 검색">
         <SearchBar :search-query="searchQuery" @update-query="updateQuery" />
@@ -118,14 +123,22 @@ const moveToDetail = (city) => {
 </template>
 
 <style scoped>
-.weather-nav {
+.navigation-row {
   display: flex;
-  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 18px;
   padding: 14px;
   margin-bottom: 14px;
   border-radius: 8px;
   background-color: #f8fafc;
+}
+
+.weather-nav {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 18px;
 }
 
 .weather-nav a {

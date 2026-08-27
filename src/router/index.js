@@ -53,6 +53,13 @@ const router = createRouter({
       component: () => import('../views/WeatherDetailView.vue'),
     },
     {
+      // Store와 외부 라이브러리 실습 화면
+      path: '/practice3',
+      name: 'practice3',
+      // 해당 경로에 접근할 때 컴포넌트를 지연 로딩함
+      component: () => import('../views/Practice3.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('../views/NotFoundView.vue'),

@@ -6,7 +6,9 @@
       <RouterLink to="/weather">과제 1 (Mockup)</RouterLink>
       <RouterLink to="/weather-composition">과제 2 (Composition)</RouterLink>
       <RouterLink to="/weather-component">과제 3 (Component)</RouterLink>
-      <RouterLink to="/weather-router">과제 4 (Router)</RouterLink>
+      <!-- Store와 외부 라이브러리 실습 화면으로 이동하는 탭 -->
+      <RouterLink to="/practice3">Store 실습</RouterLink>
+      <RouterLink to="/weather-router">과제 4 &amp; 5</RouterLink>
     </nav>
   </header>
 

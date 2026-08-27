@@ -29,7 +29,7 @@ const favoriteWeatherList = computed(() => {
 
 <template>
   <div class="practice-container">
-    <h1>Weather Router</h1>
+    <h1>Weather Dashboard</h1>
     <hr />
 
     <div class="practice-section">

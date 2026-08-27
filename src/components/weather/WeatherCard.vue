@@ -1,4 +1,7 @@
 <script setup>
+import { computed } from 'vue'
+import { useConfigStore } from '@/stores/configStore'
+
 // 부모가 반복 중인 도시 객체 하나와 즐겨찾기 여부를 Props로 전달받습니다.
 const props = defineProps({
   city: {
@@ -29,18 +32,32 @@ const clickDetail = () => {
 const toggleFavorite = () => {
   emit('toggle-favorite', props.city.id)
 }
+
+const configStore = useConfigStore()
+const displayTemp = computed(() => {
+  const rawTemp = props.city.temp
+
+  if (configStore.unit === 'fahrenheit') {
+    return Math.round((rawTemp * 9) / 5 + 32)
+  }
+
+  return rawTemp
+})
 </script>
 
 <template>
   <div class="weather-card" @click="selectCard">
     <div>
       <strong>{{ city.name }} ({{ city.status }})</strong>
-      <p>현재 기온: {{ city.displayTemp }}{{ city.unit }}</p>
+      <p>현재 기온: {{ displayTemp }}{{ configStore.unitSymbol }}</p>
 
-      <span v-if="city.temp >= 25" class="temperature-label hot">
-        🔥 더움 (25도 이상)
-      </span>
-      <span v-else class="temperature-label cool">❄️ 선선함 (25도 미만)</span>
+      <!-- Store의 전역 설정에 따라 모든 카드의 상태 라벨을 함께 표시하거나 숨깁니다. -->
+      <template v-if="configStore.showTemperatureLabel">
+        <span v-if="city.temp >= 25" class="temperature-label hot">
+          🔥 더움 (25도 이상)
+        </span>
+        <span v-else class="temperature-label cool">❄️ 선선함 (25도 미만)</span>
+      </template>
     </div>
 
     <div class="card-actions">

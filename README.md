@@ -14,6 +14,7 @@ Vue 3의 기본 문법을 작은 예제로 직접 실행해 보고, 배운 내�
 - scoped CSS와 동적 클래스 및 스타일 바인딩
 - 학습한 문법을 조합한 날씨 Mockup 구현
 - 실습 내용이 많아짐에 따라 Vue Router로 학습 페이지 분리
+- Pinia Store의 state, getter, action을 이용한 전역 상태 관리
 
 ## 기술 스택
 
@@ -65,27 +66,40 @@ src/
 ├── assets/
 │   └── practice.css
 ├── components/
-│   └── practices/
-│       ├── basic/
-│       │   ├── SampleOne.vue
-│       │   ├── Vue*.vue
-│       │   ├── Event*.vue
-│       │   ├── Model*.vue
-│       │   ├── StyleScoped.vue
-│       │   └── WeatherMockup.vue
-│       ├── composition/
-│       │   ├── Reactive*.vue
-│       │   ├── ComputedBasic.vue
-│       │   └── Watchers*.vue
-│       └── component/
-│           ├── Lifecycle*.vue
-│           ├── PropsEmits*.vue
-│           └── Slot*.vue
+│   ├── practices/
+│   │   ├── basic/
+│   │   │   ├── SampleOne.vue
+│   │   │   ├── Vue*.vue
+│   │   │   ├── Event*.vue
+│   │   │   ├── Model*.vue
+│   │   │   ├── StyleScoped.vue
+│   │   │   └── WeatherMockup.vue
+│   │   ├── composition/
+│   │   │   ├── Reactive*.vue
+│   │   │   ├── ComputedBasic.vue
+│   │   │   └── Watchers*.vue
+│   │   ├── component/
+│   │   │   ├── Lifecycle*.vue
+│   │   │   ├── PropsEmits*.vue
+│   │   │   └── Slot*.vue
+│   │   └── library/
+│   │       ├── StoreCounter.vue
+│   │       ├── Axios*.vue
+│   │       ├── ElementPlus.vue
+│   │       └── EcmaScript.vue
+│   └── weather/
+│       ├── UnitToggler.vue
+│       ├── WeatherCard.vue
+│       └── Weather*.vue
 ├── router/
 │   └── index.js
+├── stores/
+│   ├── configStore.js
+│   └── counter.js
 └── views/
     ├── BasicPracticeView.vue
     ├── Practice2.vue
+    ├── Practice3.vue
     ├── WeatherView.vue
     └── WeatherCompositionView.vue
 ```
@@ -97,6 +111,7 @@ src/
 | `/` | 리다이렉트 | `/practice`로 자동 이동 |
 | `/practice` | `BasicPracticeView.vue` | 디렉티브, 이벤트, 폼, 스타일 기본 실습 |
 | `/practice2` | `Practice2.vue` | Composition API, Watcher, 생명주기, Props/Emits, Slot 실습 |
+| `/practice3` | `Practice3.vue` | Pinia Store와 외부 라이브러리 실습 |
 | `/weather` | `WeatherView.vue` | 날씨 Mockup 종합 과제 |
 | `/weather-composition` | `WeatherCompositionView.vue` | computed와 watch를 적용한 날씨 Composition 과제 |
 
@@ -390,6 +405,72 @@ Named Slot 실습에는 `footer` 영역을 직접 추가했습니다. 부모가 
 
 관련 예제: `SlotDefault*.vue`, `SlotNamed*.vue`, `SlotScoped*.vue`
 
+### 8. Pinia Store
+
+컴포넌트 내부의 `ref`는 해당 컴포넌트가 직접 관리하는 지역 상태입니다. 여러 컴포넌트에서 같은 상태를 읽고 변경해야 한다면 Props와 Emits를 여러 단계로 전달해야 할 수 있습니다. Pinia Store를 사용하면 상태와 상태 변경 로직을 컴포넌트 밖의 중앙 저장소에 두고 필요한 컴포넌트가 직접 사용할 수 있습니다.
+
+이번 실습에서는 Vue 프로젝트 생성 시 포함된 `src/stores/counter.js`의 Counter Store를 `StoreCounter.vue`에서 가져와 사용했습니다.
+
+```js
+export const useCounterStore = defineStore('counter', () => {
+  const count = ref(0)
+  const doubleCount = computed(() => count.value * 2)
+
+  function increment() {
+    count.value++
+  }
+
+  return { count, doubleCount, increment }
+})
+```
+
+Setup Store 방식에서는 다음 세 가지 역할을 Vue의 Composition API로 정의합니다.
+
+| Store 요소 | Counter 예제 | 역할 |
+| --- | --- | --- |
+| state | `count` | Store가 실제로 보관하는 원본 상태 |
+| getter | `doubleCount` | state를 기반으로 계산하는 파생 값 |
+| action | `increment()` | 비즈니스 로직을 실행하고 state를 변경하는 함수 |
+
+`increment()`는 `count.value++`를 실행하므로 버튼을 누를 때마다 state가 1씩 증가합니다. `doubleCount`는 `count.value * 2`로 선언한 computed 값이므로 count가 변경될 때 그 값의 2배로 자동 갱신됩니다. getter는 별도의 숫자를 중복 저장하는 것이 아니라 현재 state로부터 결과를 계산합니다.
+
+```text
+버튼 클릭
+→ counterStore.increment() action 실행
+→ count state가 1 증가
+→ count를 의존하는 doubleCount getter 재계산
+→ 두 값을 사용하는 화면 자동 갱신
+```
+
+컴포넌트에서는 Store를 만드는 함수인 `useCounterStore()`를 호출해 Store 인스턴스를 얻습니다.
+
+```js
+import { useCounterStore } from '@/stores/counter.js'
+
+const counterStore = useCounterStore()
+```
+
+템플릿에서는 Store 인스턴스를 통해 각 요소에 접근합니다.
+
+```vue
+<p>state: {{ counterStore.count }}</p>
+<p>getter: {{ counterStore.doubleCount }}</p>
+<button @click="counterStore.increment">증가</button>
+```
+
+JavaScript에서 단독 `ref`를 사용할 때는 `.value`가 필요하지만, 템플릿에서는 Vue가 ref를 자동으로 해제합니다. 따라서 `counterStore.count.value`가 아니라 `counterStore.count`로 출력합니다. 현재 예제처럼 Store 객체를 그대로 사용하면 반응성도 유지됩니다. Store 속성을 구조 분해해야 할 때는 state와 getter의 반응성을 잃지 않도록 `storeToRefs()` 사용을 고려해야 합니다.
+
+Pinia가 동작하려면 앱 시작 시 생성한 Pinia 인스턴스를 Vue 앱에 플러그인으로 등록해야 합니다. 이 프로젝트의 `main.js`에는 다음 설정이 적용되어 있습니다.
+
+```js
+const app = createApp(App)
+
+app.use(createPinia())
+app.use(router)
+```
+
+관련 예제: `stores/counter.js`, `StoreCounter.vue`, `Practice3.vue`
+
 ## 종합 과제: Weather Mockup
 
 `WeatherMockup.vue`는 앞에서 학습한 문법을 함께 사용하는 날씨 화면입니다.
@@ -459,6 +540,99 @@ localStorage는 배열을 직접 저장할 수 없기 때문에 저장할 때 `J
 
 관련 예제: `WeatherHomeView.vue`, `WeatherDetailView.vue`, `WeatherAboutView.vue`, `WeatherFavoritesView.vue`, `NotFoundView.vue`
 
+## 종합 과제: Weather Store
+
+과제 4의 Router 날씨 화면에 Pinia Store를 적용해 과제 5로 확장했습니다. 컴포넌트마다 온도 단위를 따로 관리하지 않고 `configStore`가 설정을 전역으로 관리하도록 만들었습니다. 대시보드에서 설정을 바꾼 뒤 상세 페이지로 이동해도 같은 Store 인스턴스를 사용하므로 선택한 단위가 유지됩니다.
+
+### configStore 구성
+
+`configStore.js`에는 날씨 단위 설정을 위한 state, getter, action을 작성했습니다.
+
+```js
+export const useConfigStore = defineStore('config', () => {
+  const unit = ref('celsius')
+
+  const unitSymbol = computed(() => {
+    return unit.value === 'celsius' ? '℃' : '℉'
+  })
+
+  function toggleUnit() {
+    unit.value = unit.value === 'celsius' ? 'fahrenheit' : 'celsius'
+  }
+
+  return { unit, unitSymbol, toggleUnit }
+})
+```
+
+- `unit`: 현재 선택된 단위를 저장하는 state이며 초기값은 `celsius`입니다.
+- `unitSymbol`: 현재 state에 따라 `℃` 또는 `℉`를 반환하는 getter입니다.
+- `toggleUnit()`: `celsius`와 `fahrenheit`를 전환하는 action입니다.
+
+### UnitToggler와 Navigation 배치
+
+`UnitToggler.vue`에서 `useConfigStore()`를 호출해 현재 단위와 변경 버튼을 구성했습니다. Navigation Bar와 `UnitToggler`를 `navigation-row`로 묶고 flex를 사용해 메뉴와 설정 UI를 같은 행에 배치했습니다. 화면 폭이 좁아지면 `flex-wrap`으로 줄바꿈됩니다.
+
+```vue
+<span>날씨 단위: {{ configStore.unitSymbol }}</span>
+<button @click="configStore.toggleUnit">단위 변경</button>
+```
+
+Store 인스턴스를 처음에는 `ConfigStore`로 선언하고 템플릿에서는 `configStore`로 호출해 버튼이 동작하지 않았습니다. JavaScript 식별자는 대소문자를 구분하므로 서로 다른 변수로 취급됩니다. 선언과 사용 위치를 모두 `configStore`로 통일해 해결했습니다.
+
+### 메인·상세 날씨의 온도 변환
+
+날씨 데이터의 `temp`는 섭씨 원본 값으로 유지하고, `WeatherCard.vue`와 `WeatherDetailView.vue`에서 화면에 표시할 `displayTemp`를 computed로 계산했습니다.
+
+```js
+const displayTemp = computed(() => {
+  const rawTemp = props.city.temp
+
+  if (configStore.unit === 'fahrenheit') {
+    return Math.round((rawTemp * 9) / 5 + 32)
+  }
+
+  return rawTemp
+})
+```
+
+```text
+단위 변경 버튼 클릭
+→ configStore.toggleUnit() 실행
+→ unit state 변경
+→ unitSymbol getter 재계산
+→ unit을 사용하는 displayTemp computed 재계산
+→ 모든 날씨 카드와 상세 화면 자동 갱신
+```
+
+화씨 값을 원본 데이터에 다시 저장하지 않았기 때문에 단위를 여러 번 변경해도 변환 오차가 누적되지 않습니다. 상세 화면에서는 도시 데이터가 Mount 이후 선택되므로 `selectedWeather.value?.temp`와 null 검사를 사용해 데이터가 준비되기 전에도 안전하게 계산하도록 했습니다.
+
+### 추가 Store 설정 기능
+
+과제의 추가 state/getter/action 활용 조건을 충족하기 위해 날씨 카드의 더움·선선함 라벨 표시 설정을 구현했습니다.
+
+| Store 요소 | 추가 항목 | 역할 |
+| --- | --- | --- |
+| state | `showTemperatureLabel` | 온도 상태 라벨 표시 여부 저장 |
+| getter | `temperatureLabelButtonText` | 현재 상태에 맞춰 보이기·숨기기 버튼 문구 계산 |
+| action | `toggleTemperatureLabel()` | 라벨 표시 여부 전환 |
+
+`UnitToggler`의 버튼이 action을 실행하고, 모든 `WeatherCard`가 같은 state를 확인합니다.
+
+```vue
+<button @click="configStore.toggleTemperatureLabel">
+  {{ configStore.temperatureLabelButtonText }}
+</button>
+
+<template v-if="configStore.showTemperatureLabel">
+  <span v-if="city.temp >= 25">🔥 더움 (25도 이상)</span>
+  <span v-else>❄️ 선선함 (25도 미만)</span>
+</template>
+```
+
+하나의 버튼으로 모든 카드가 동시에 바뀌는 과정을 통해 전역 Store의 장점을 확인했습니다. state를 Store에 선언하는 것만으로는 기능이 완성되지 않으며, getter와 action을 실제 컴포넌트 UI에서 읽고 실행해야 전체 데이터 흐름을 확인할 수 있었습니다.
+
+관련 예제: `stores/configStore.js`, `UnitToggler.vue`, `WeatherCard.vue`, `WeatherHomeView.vue`, `WeatherDetailView.vue`
+
 ## 공부하며 이해한 핵심
 
 1. Vue 화면의 기준은 DOM 자체가 아니라 반응형 상태입니다.
@@ -476,12 +650,19 @@ localStorage는 배열을 직접 저장할 수 없기 때문에 저장할 때 `J
 13. 부모는 Props로 자식에게 값을 전달하고, 자식은 Emit으로 부모에게 상태 변경을 요청합니다.
 14. Slot은 부모가 콘텐츠를 만들고 자식이 표시 위치를 정하며, Named Slot과 fallback으로 영역별 기본 화면을 구성할 수 있습니다.
 15. 동적 라우트의 파라미터로 상세 데이터를 선택할 수 있고, 기능별 저장 키를 나누면 과제마다 독립된 localStorage 상태를 관리할 수 있습니다.
+16. Pinia Store의 state는 원본 데이터, getter는 state로 만든 파생 값, action은 state를 변경하는 동작을 담당합니다.
+17. 여러 컴포넌트가 공유해야 하는 상태를 Store로 분리하면 Props와 Emits를 여러 단계로 전달하지 않고도 같은 상태와 로직을 사용할 수 있습니다.
+18. 서로 다른 View에서 같은 Store를 사용하면 라우트가 바뀌어도 현재 설정을 공유할 수 있습니다.
+19. 원본 섭씨 온도는 유지하고 computed로 표시 온도만 변환하면 반복 변환으로 인한 데이터 손상과 오차 누적을 방지할 수 있습니다.
+20. Store의 state, getter, action은 선언하는 데서 끝나지 않고 컴포넌트가 실제로 사용해야 전역 상태 변경이 화면에 반영됩니다.
+21. JavaScript 식별자는 대소문자를 구분하므로 Store 인스턴스의 선언명과 템플릿에서 사용하는 이름이 정확히 같아야 합니다.
 
 ## 다음 학습 목표
 
 - 날씨 검색에서 대소문자와 공백 등 다양한 입력 조건 처리
 - props와 emit을 사용해 날씨 카드 컴포넌트로 확장
-- Pinia를 사용한 전역 상태 관리
+- Pinia 상태를 localStorage에 저장해 새로고침 후에도 설정 유지
+- 중복된 온도 변환 로직을 composable로 분리
 - 중첩 라우트와 동적 라우트 파라미터 학습
 - API 요청을 통한 실제 날씨 데이터 연동
 - 컴포넌트 단위 테스트 작성

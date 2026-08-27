@@ -10,7 +10,7 @@ import 'element-plus/dist/index.css'
 
 const app = createApp(App)
 
-app.use(createPinia())
+app.use(createPinia())  // Finia 등록하기
 app.use(router)
 app.use(ElementPlus)
 

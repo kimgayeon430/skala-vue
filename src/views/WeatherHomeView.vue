@@ -1,23 +1,23 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import BaseDashboardCard from '@/components/weather/BaseDashboardCard.vue'
 import SearchBar from '@/components/weather/SearchBar.vue'
 import WeatherCard from '@/components/weather/WeatherCard.vue'
 import UnitToggler from '@/components/weather/UnitToggler.vue'
+import { useWeatherStore } from '@/stores/weatherStore'
 
 const router = useRouter()
-
-// 과제 4의 메인 View가 날씨 데이터와 화면 상태를 관리합니다.
-const weatherList = ref([
-  { id: 'city_01', name: '서울', temp: 28, status: '맑음', displayTemp: 28, unit: '℃' },
-  { id: 'city_02', name: '수원', temp: 24, status: '비', displayTemp: 24, unit: '℃' },
-  { id: 'city_03', name: '부산', temp: 26, status: '구름', displayTemp: 26, unit: '℃' },
-  { id: 'city_04', name: '제주', temp: 23, status: '바람', displayTemp: 23, unit: '℃' },
-])
+const weatherStore = useWeatherStore()
+const { weatherList, isLoading, errorMessage, lastUpdatedAt } = storeToRefs(weatherStore)
 
 const searchQuery = ref('')
 const selectedCityInfo = ref(null)
+
+const formattedUpdatedAt = computed(() => {
+  return lastUpdatedAt.value?.toLocaleTimeString('ko-KR') ?? ''
+})
 
 const loadRouterFavorites = () => {
   try {
@@ -72,6 +72,10 @@ watch(
 const moveToDetail = (city) => {
   router.push(`/weather-router/${city.id}`)
 }
+
+onMounted(() => {
+  weatherStore.fetchWeatherList()
+})
 </script>
 
 <template>
@@ -97,17 +101,35 @@ const moveToDetail = (city) => {
       </BaseDashboardCard>
 
       <BaseDashboardCard title="🌆 지역별 날씨 현황">
-        <WeatherCard
-          v-for="city in filteredWeatherList"
-          :key="city.id"
-          :city="city"
-          :is-favorite="favoriteCities.includes(city.id)"
-          @select-card="selectCity"
-          @click-detail="moveToDetail"
-          @toggle-favorite="toggleFavorite"
-        />
+        <div class="api-status">
+          <span>
+            {{ formattedUpdatedAt ? `OpenWeatherMap 갱신: ${formattedUpdatedAt}` : '실시간 데이터 준비 중' }}
+          </span>
+          <button :disabled="isLoading" @click="weatherStore.fetchWeatherList(true)">
+            {{ isLoading ? '불러오는 중...' : '날씨 새로고침' }}
+          </button>
+        </div>
 
-        <p v-if="filteredWeatherList.length === 0">
+        <p v-if="errorMessage" class="data-message error-message">
+          {{ errorMessage }}
+        </p>
+        <p v-else-if="isLoading && weatherList.length === 0" class="data-message">
+          OpenWeatherMap에서 날씨를 불러오는 중입니다.
+        </p>
+
+        <template v-else>
+          <WeatherCard
+            v-for="city in filteredWeatherList"
+            :key="city.id"
+            :city="city"
+            :is-favorite="favoriteCities.includes(city.id)"
+            @select-card="selectCity"
+            @click-detail="moveToDetail"
+            @toggle-favorite="toggleFavorite"
+          />
+        </template>
+
+        <p v-if="!isLoading && !errorMessage && filteredWeatherList.length === 0">
           검색 결과와 일치하는 도시가 없습니다.
         </p>
       </BaseDashboardCard>
@@ -150,6 +172,28 @@ const moveToDetail = (city) => {
 .weather-nav a.router-link-exact-active {
   color: #3498db;
   border-bottom: 2px solid #3498db;
+}
+
+.api-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #66727c;
+  font-size: 13px;
+}
+
+.data-message {
+  padding: 16px;
+  border-radius: 6px;
+  background-color: #f1f5f8;
+  text-align: center;
+}
+
+.error-message {
+  background-color: #fff2f2;
+  color: #c0392b;
 }
 
 .selected-message {

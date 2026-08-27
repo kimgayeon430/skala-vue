@@ -1,15 +1,14 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
+import { useConfigStore } from '@/stores/configStore'
+import { useWeatherStore } from '@/stores/weatherStore'
 
 const router = useRouter()
-
-const weatherList = [
-  { id: 'city_01', name: '서울', temp: 28, status: '맑음' },
-  { id: 'city_02', name: '수원', temp: 24, status: '비' },
-  { id: 'city_03', name: '부산', temp: 26, status: '구름' },
-  { id: 'city_04', name: '제주', temp: 23, status: '바람' },
-]
+const configStore = useConfigStore()
+const weatherStore = useWeatherStore()
+const { weatherList, isLoading, errorMessage } = storeToRefs(weatherStore)
 
 const loadFavoriteIds = () => {
   try {
@@ -23,7 +22,19 @@ const loadFavoriteIds = () => {
 // 과제 4 대시보드에서 저장한 즐겨찾기 ID만 활용하는 추가 View입니다.
 const favoriteWeatherList = computed(() => {
   const favoriteIds = loadFavoriteIds()
-  return weatherList.filter((city) => favoriteIds.includes(city.id))
+  return weatherList.value
+    .filter((city) => favoriteIds.includes(city.id))
+    .map((city) => ({
+      ...city,
+      displayTemp:
+        configStore.unit === 'fahrenheit'
+          ? Math.round((city.temp * 9) / 5 + 32)
+          : city.temp,
+    }))
+})
+
+onMounted(() => {
+  weatherStore.fetchWeatherList()
 })
 </script>
 
@@ -35,7 +46,13 @@ const favoriteWeatherList = computed(() => {
     <div class="practice-section">
       <h2>⭐ 즐겨찾기 지역</h2>
 
-      <div v-if="favoriteWeatherList.length" class="favorite-list">
+      <p v-if="isLoading && weatherList.length === 0" class="empty-message">
+        OpenWeatherMap에서 즐겨찾기 날씨를 불러오는 중입니다.
+      </p>
+
+      <p v-else-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+      <div v-else-if="favoriteWeatherList.length" class="favorite-list">
         <button
           v-for="city in favoriteWeatherList"
           :key="city.id"
@@ -43,7 +60,7 @@ const favoriteWeatherList = computed(() => {
           @click="router.push(`/weather-router/${city.id}`)"
         >
           <strong>{{ city.name }}</strong>
-          <span>{{ city.temp }}℃ · {{ city.status }}</span>
+          <span>{{ city.displayTemp }}{{ configStore.unitSymbol }} · {{ city.status }}</span>
         </button>
       </div>
 
@@ -74,6 +91,13 @@ const favoriteWeatherList = computed(() => {
   padding: 18px;
   color: #8a6200;
   background-color: #fffdf2;
+  text-align: center;
+}
+
+.error-message {
+  padding: 18px;
+  color: #c0392b;
+  background-color: #fff2f2;
   text-align: center;
 }
 

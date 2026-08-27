@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useConfigStore } from '@/stores/configStore'
+import { getWeatherIconUrl } from '@/services/weatherApi'
 
 // 부모가 반복 중인 도시 객체 하나와 즐겨찾기 여부를 Props로 전달받습니다.
 const props = defineProps({
@@ -43,21 +44,34 @@ const displayTemp = computed(() => {
 
   return rawTemp
 })
+
+const weatherIconUrl = computed(() => {
+  return props.city.iconCode ? getWeatherIconUrl(props.city.iconCode) : ''
+})
 </script>
 
 <template>
   <div class="weather-card" @click="selectCard">
-    <div>
-      <strong>{{ city.name }} ({{ city.status }})</strong>
-      <p>현재 기온: {{ displayTemp }}{{ configStore.unitSymbol }}</p>
+    <div class="weather-content">
+      <img
+        v-if="weatherIconUrl"
+        class="weather-icon"
+        :src="weatherIconUrl"
+        :alt="`${city.status} 날씨 아이콘`"
+      />
 
-      <!-- Store의 전역 설정에 따라 모든 카드의 상태 라벨을 함께 표시하거나 숨깁니다. -->
-      <template v-if="configStore.showTemperatureLabel">
-        <span v-if="city.temp >= 25" class="temperature-label hot">
-          🔥 더움 (25도 이상)
-        </span>
-        <span v-else class="temperature-label cool">❄️ 선선함 (25도 미만)</span>
-      </template>
+      <div>
+        <strong>{{ city.name }} ({{ city.status }})</strong>
+        <p>현재 기온: {{ displayTemp }}{{ configStore.unitSymbol }}</p>
+
+        <!-- Store의 전역 설정에 따라 모든 카드의 상태 라벨을 함께 표시하거나 숨깁니다. -->
+        <template v-if="configStore.showTemperatureLabel">
+          <span v-if="city.temp >= 25" class="temperature-label hot">
+            🔥 더움 (25도 이상)
+          </span>
+          <span v-else class="temperature-label cool">❄️ 선선함 (25도 미만)</span>
+        </template>
+      </div>
     </div>
 
     <div class="card-actions">
@@ -94,6 +108,17 @@ const displayTemp = computed(() => {
 
 .weather-card:hover {
   background-color: #f0f7ff;
+}
+
+.weather-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.weather-icon {
+  width: 56px;
+  height: 56px;
 }
 
 .weather-card p {

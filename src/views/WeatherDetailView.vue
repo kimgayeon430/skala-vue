@@ -1,68 +1,48 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
-import { computed } from 'vue'
 import { useConfigStore } from '@/stores/configStore'
+import { useWeatherStore } from '@/stores/weatherStore'
+import { getWeatherIconUrl } from '@/services/weatherApi'
 
 const route = useRoute()
 const router = useRouter()
-const selectedWeather = ref(null)
-
 const configStore = useConfigStore()
+const weatherStore = useWeatherStore()
+const { isLoading, errorMessage } = storeToRefs(weatherStore)
 
-const displayTemp = computed(() => {
-  const rawTemp = selectedWeather.value?.temp
+const selectedWeather = computed(() => {
+  return weatherStore.findWeatherById(route.params.cityId)
+})
 
-  if (rawTemp == null) {
+const convertTemperature = (temperature) => {
+  if (temperature == null) {
     return ''
   }
 
   if (configStore.unit === 'fahrenheit') {
-    return Math.round((rawTemp * 9) / 5 + 32)
+    return Math.round((temperature * 9) / 5 + 32)
   }
 
-  return rawTemp
+  return temperature
+}
+
+const displayTemp = computed(() => {
+  return convertTemperature(selectedWeather.value?.temp)
 })
 
-// 실제 API 대신 도시 코드별 상세 Mock Data를 사용합니다.
-const weatherDetails = [
-  {
-    id: 'city_01',
-    name: '대한민국 서울특별시',
-    temp: 28,
-    status: '맑음',
-    humidity: 55,
-    windSpeed: 2.5,
-  },
-  {
-    id: 'city_02',
-    name: '대한민국 경기도 수원시',
-    temp: 24,
-    status: '비',
-    humidity: 78,
-    windSpeed: 3.8,
-  },
-  {
-    id: 'city_03',
-    name: '대한민국 부산광역시',
-    temp: 26,
-    status: '구름',
-    humidity: 64,
-    windSpeed: 4.1,
-  },
-  {
-    id: 'city_04',
-    name: '대한민국 제주특별자치도',
-    temp: 23,
-    status: '바람',
-    humidity: 61,
-    windSpeed: 6.2,
-  },
-]
+const displayFeelsLike = computed(() => {
+  return convertTemperature(selectedWeather.value?.feelsLike)
+})
 
-// Mount 시점에 동적 경로의 cityId로 해당 도시 객체를 선택합니다.
+const weatherIconUrl = computed(() => {
+  const iconCode = selectedWeather.value?.iconCode
+  return iconCode ? getWeatherIconUrl(iconCode) : ''
+})
+
 onMounted(() => {
-  selectedWeather.value = weatherDetails.find((city) => city.id === route.params.cityId) ?? null
+  weatherStore.fetchWeatherList()
 })
 </script>
 
@@ -74,9 +54,23 @@ onMounted(() => {
     <div class="practice-section">
       <h2>📊 지역별 상세 기상 관측 정보</h2>
 
-      <div v-if="selectedWeather" class="detail-panel">
-        <p>📍 지정 지역: {{ selectedWeather.name }}</p>
+      <p v-if="isLoading && !selectedWeather" class="loading-message">
+        OpenWeatherMap에서 상세 날씨를 불러오는 중입니다.
+      </p>
+
+      <p v-else-if="errorMessage" class="missing-city">{{ errorMessage }}</p>
+
+      <div v-else-if="selectedWeather" class="detail-panel">
+        <div class="detail-heading">
+          <img
+            v-if="weatherIconUrl"
+            :src="weatherIconUrl"
+            :alt="`${selectedWeather.status} 날씨 아이콘`"
+          />
+          <strong>📍 지정 지역: {{ selectedWeather.name }}</strong>
+        </div>
         <p>실시간 기온: {{ displayTemp }}{{ configStore.unitSymbol }}</p>
+        <p>체감 온도: {{ displayFeelsLike }}{{ configStore.unitSymbol }}</p>
         <p>기상 현황: {{ selectedWeather.status }}</p>
         <p>대기 습도: {{ selectedWeather.humidity }}%</p>
         <p>현재 풍속: {{ selectedWeather.windSpeed }}m/s</p>
@@ -99,6 +93,23 @@ onMounted(() => {
 
 .detail-panel p {
   margin: 5px 0;
+}
+
+.detail-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-heading img {
+  width: 64px;
+  height: 64px;
+}
+
+.loading-message {
+  padding: 18px;
+  background-color: #f1f5f8;
+  text-align: center;
 }
 
 .missing-city {

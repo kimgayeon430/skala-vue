@@ -75,7 +75,7 @@ const airQualityClass = computed(() => {
         <!-- Store의 전역 설정에 따라 모든 카드의 상태 라벨을 함께 표시하거나 숨깁니다. -->
         <template v-if="configStore.showTemperatureLabel">
           <span class="air-quality" :class="airQualityClass">
-            대기질 {{ city.airQualityStatus }} (AQI {{ city.aqi }})
+            대기질 {{ city.airQualityStatus }}
           </span>
           <span v-if="city.temp >= 25" class="temperature-label hot">
             🔥 더움 (25도 이상)

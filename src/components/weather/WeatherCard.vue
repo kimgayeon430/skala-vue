@@ -80,11 +80,12 @@ const weatherIconUrl = computed(() => {
         v-if="showFavorite"
         class="favorite-button"
         :class="{ active: isFavorite }"
+        :style="configStore.buttonStyle"
         @click.stop="toggleFavorite"
       >
         {{ isFavorite ? '★ 즐겨찾기 해제' : '☆ 즐겨찾기' }}
       </button>
-      <button @click.stop="clickDetail">상세보기</button>
+      <button :style="configStore.buttonStyle" @click.stop="clickDetail">상세보기</button>
     </div>
   </div>
 </template>

@@ -78,7 +78,12 @@ onMounted(() => {
 
       <p v-else class="missing-city">해당 도시의 기상 정보를 찾을 수 없습니다.</p>
 
-      <button @click="router.push('/weather-router')">← 메인 대시보드로 돌아가기</button>
+      <button
+        :style="configStore.buttonStyle"
+        @click="router.push('/weather-router')"
+      >
+        ← 메인 대시보드로 돌아가기
+      </button>
     </div>
   </div>
 </template>

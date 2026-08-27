@@ -6,9 +6,11 @@ import BaseDashboardCard from '@/components/weather/BaseDashboardCard.vue'
 import SearchBar from '@/components/weather/SearchBar.vue'
 import WeatherCard from '@/components/weather/WeatherCard.vue'
 import UnitToggler from '@/components/weather/UnitToggler.vue'
+import { useConfigStore } from '@/stores/configStore'
 import { useWeatherStore } from '@/stores/weatherStore'
 
 const router = useRouter()
+const configStore = useConfigStore()
 const weatherStore = useWeatherStore()
 const { weatherList, isLoading, errorMessage, lastUpdatedAt } = storeToRefs(weatherStore)
 
@@ -105,9 +107,21 @@ onMounted(() => {
           <span>
             {{ formattedUpdatedAt ? `OpenWeatherMap 갱신: ${formattedUpdatedAt}` : '실시간 데이터 준비 중' }}
           </span>
-          <button :disabled="isLoading" @click="weatherStore.fetchWeatherList(true)">
-            {{ isLoading ? '불러오는 중...' : '날씨 새로고침' }}
-          </button>
+          <div class="api-actions">
+            <button
+              :disabled="isLoading"
+              :style="configStore.buttonStyle"
+              @click="weatherStore.fetchWeatherList(true)"
+            >
+              {{ isLoading ? '불러오는 중...' : '날씨 새로고침' }}
+            </button>
+            <button
+              :style="configStore.buttonStyle"
+              @click="configStore.toggleTemperatureLabel"
+            >
+              {{ configStore.temperatureLabelButtonText }}
+            </button>
+          </div>
         </div>
 
         <p v-if="errorMessage" class="data-message error-message">
@@ -176,6 +190,7 @@ onMounted(() => {
 
 .api-status {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -189,6 +204,11 @@ onMounted(() => {
   border-radius: 6px;
   background-color: #f1f5f8;
   text-align: center;
+}
+
+.api-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .error-message {

@@ -64,9 +64,13 @@ onMounted(() => {
         </button>
       </div>
 
-      <p v-else class="empty-message">과제 4에서 즐겨찾기한 도시가 없습니다.</p>
+      <p v-else class="empty-message">즐겨찾기한 도시가 없습니다.</p>
 
-      <button class="home-button" @click="router.push('/weather-router')">
+      <button
+        class="home-button"
+        :style="configStore.buttonStyle"
+        @click="router.push('/weather-router')"
+      >
         대시보드 홈으로 이동
       </button>
     </div>

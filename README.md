@@ -51,13 +51,14 @@ npm run lint
 
 | URL                    | 내용                                        |
 | ---------------------- | ------------------------------------------- |
+| `/`                    | 최종 날씨 종합실습 화면으로 이동            |
+| `/weather-router`      | Router, Pinia, Axios를 적용한 최종 대시보드 |
 | `/practice`            | Vue 기본 문법 실습                          |
 | `/practice2`           | Composition API와 컴포넌트 실습             |
 | `/practice3`           | Pinia, Axios, Element Plus 실습             |
 | `/weather`             | 날씨 Mockup 과제                            |
 | `/weather-composition` | computed와 watch를 적용한 날씨 과제         |
 | `/weather-component`   | 컴포넌트로 분리한 날씨 과제                 |
-| `/weather-router`      | Router, Pinia, Axios를 적용한 날씨 대시보드 |
 
 ## 프로젝트 구조
 
@@ -297,7 +298,37 @@ Element Plus의 `el-color-picker`를 사용해 색상을 선택하는 실습을 
 
 `configStore`에서 온도 단위와 카드 라벨 설정을 관리했다. 메인에서 단위를 바꾸고 상세 페이지로 이동해도 같은 Store를 사용하기 때문에 설정이 유지된다.
 
+#### Element Plus로 버튼 색상 변경
+
 Element Plus 색상 선택 실습을 날씨 화면에도 적용했다. `configStore`에 `buttonColor`를 추가하고, Color Picker에서 선택한 색상을 새로고침, 즐겨찾기, 상세보기 등의 버튼에 공통으로 적용했다.
+
+```vue
+<el-color-picker
+  :model-value="configStore.buttonColor"
+  @active-change="configStore.setButtonColor"
+  @change="configStore.setButtonColor"
+/>
+```
+
+선택한 색상은 Store의 `buttonStyle`에서 버튼에 적용할 style 객체로 만들었다.
+
+```js
+const buttonStyle = computed(() => {
+  if (!buttonColor.value) return {}
+
+  return {
+    backgroundColor: buttonColor.value,
+    borderColor: buttonColor.value,
+    color: 'white',
+  }
+})
+```
+
+각 버튼에서는 같은 Store의 style을 바인딩했다.
+
+```vue
+<button :style="configStore.buttonStyle">날씨 새로고침</button>
+```
 
 - 처음 화면에서는 기존 회색 버튼 스타일을 사용한다.
 - 색상을 선택한 뒤에만 버튼 색상이 변경된다.
@@ -388,10 +419,3 @@ Mock Data 대신 OpenWeatherMap Current Weather API를 사용했다. 현재는 �
 - computed로 상태에 맞는 CSS class를 정하면 데이터에 따라 라벨 색상을 바꿀 수 있다.
 - API 키 오류는 Postman으로 먼저 확인하면 원인을 찾기 편하다.
 - Fake API와 실제로 저장되는 API의 차이를 구분해야 한다.
-
-## 다음에 해볼 것
-
-- 여러 도시 요청 중 일부만 실패했을 때 나머지 도시는 보여 주기
-- 온도 변환 중복 코드를 composable로 분리하기
-- Pinia 설정을 localStorage에 저장하기
-- 컴포넌트 테스트 작성하기

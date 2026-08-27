@@ -48,7 +48,7 @@ onMounted(() => {
 
 <template>
   <div class="practice-container">
-    <h1>Weather Dashboard</h1>
+    <h1>날씨 종합 대시보드</h1>
     <hr />
 
     <div class="practice-section">

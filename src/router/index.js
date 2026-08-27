@@ -5,7 +5,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/practice',
+      redirect: '/weather-router',
     },
     {
       path: '/practice',

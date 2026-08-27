@@ -30,7 +30,7 @@ const loadRouterFavorites = () => {
   }
 }
 
-// 과제 3과 별개로 과제 4에서 선택한 즐겨찾기만 관리합니다.
+// 종합실습 대시보드에서 선택한 즐겨찾기를 관리합니다.
 const favoriteCities = ref(loadRouterFavorites())
 
 const filteredWeatherList = computed(() => {
@@ -82,11 +82,11 @@ onMounted(() => {
 
 <template>
   <div class="practice-container">
-    <h1>Weather Dashboard</h1>
+    <h1>날씨 종합 대시보드</h1>
     <hr />
 
     <div class="practice-section">
-      <h2>🌤️ 과제 5: 스토어 적용</h2>
+      <h2>🌤️ Vue.js 최종 종합실습</h2>
 
       <div class="navigation-row">
         <nav class="weather-nav" aria-label="날씨 서비스 메뉴">

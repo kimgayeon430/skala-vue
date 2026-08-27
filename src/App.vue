@@ -1,6 +1,7 @@
 <template>
   <header class="app-header">
     <nav class="app-nav" aria-label="주요 메뉴">
+      <RouterLink to="/weather-router">최종 종합실습</RouterLink>
       <RouterLink to="/practice">기본 실습</RouterLink>
       <RouterLink to="/practice2">Composition API</RouterLink>
       <RouterLink to="/weather">과제 1 (Mockup)</RouterLink>
@@ -8,7 +9,6 @@
       <RouterLink to="/weather-component">과제 3 (Component)</RouterLink>
       <!-- Store와 외부 라이브러리 실습 화면으로 이동하는 탭 -->
       <RouterLink to="/practice3">Store 실습</RouterLink>
-      <RouterLink to="/weather-router">과제 4 &amp; 5</RouterLink>
     </nav>
   </header>
 

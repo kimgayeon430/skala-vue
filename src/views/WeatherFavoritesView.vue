@@ -19,7 +19,7 @@ const loadFavoriteIds = () => {
   }
 }
 
-// 과제 4 대시보드에서 저장한 즐겨찾기 ID만 활용하는 추가 View입니다.
+// 종합실습 대시보드에서 저장한 즐겨찾기 ID를 사용합니다.
 const favoriteWeatherList = computed(() => {
   const favoriteIds = loadFavoriteIds()
   return weatherList.value
@@ -40,7 +40,7 @@ onMounted(() => {
 
 <template>
   <div class="practice-container">
-    <h1>Weather Dashboard</h1>
+    <h1>날씨 종합 대시보드</h1>
     <hr />
 
     <div class="practice-section">

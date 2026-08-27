@@ -31,13 +31,11 @@ npm install
 npm run dev
 ```
 
-OpenWeatherMap API를 사용하는 화면은 프로젝트 루트에 `.env.local` 파일이 필요하다.
-
 ```env
 VITE_OPENWEATHER_API_KEY=본인의_API_키
 ```
 
-환경변수를 추가하거나 수정한 뒤에는 개발 서버를 다시 실행해야 한다. `.env.local`은 Git에 올라가지 않도록 제외되어 있다.
+환경변수를 추가하거나 수정한 뒤에는 개발 서버를 다시 실행해야 한다. `.env`은 Git에 올라가지 않도록 제외되어 있다.
 
 ```sh
 # 빌드
@@ -46,6 +44,47 @@ npm run build
 # 린트
 npm run lint
 ```
+
+## 환경변수 설정과 배포
+
+로컬에서 사용하는 `.env` 파일은 GitHub에 올라가지 않는다. 따라서 Vercel로 배포할 때는 API 키를 따로 등록해야 한다.
+
+1. GitHub 저장소를 Vercel에 연결한다.
+2. Vercel 프로젝트의 `Settings` → `Environment Variables`로 이동한다.
+3. 아래 이름으로 OpenWeatherMap API 키를 등록한다.
+
+```text
+Name: VITE_OPENWEATHER_API_KEY
+Value: 발급받은 OpenWeatherMap API 키
+```
+
+Vite에서는 브라우저에서 사용할 환경변수 이름 앞에 `VITE_`를 붙인다.
+
+## 배포 주소
+
+배포 URL: skala-vue-orcin-beta.vercel.app
+
+## 최종 종합실습 주요 기능
+
+- 7개 도시의 실시간 날씨 조회
+- AQI, PM10, PM2.5 대기질 정보 조회
+- 도시 검색과 즐겨찾기 저장
+- 도시별 상세 페이지와 동적 라우팅
+- 섭씨와 화씨 단위 변경
+- 온도 및 대기질 상태 라벨 표시 설정
+- Element Plus Color Picker를 이용한 버튼 색상 변경
+- Pinia를 이용한 날씨 데이터와 화면 설정 관리
+- OpenWeatherMap과 Open-Meteo API 연동
+
+### 차별화 포인트
+
+기본 날씨 조회에서 끝내지 않고 실제로 화면을 사용할 때 필요한 기능을 추가했다.
+
+- 자주 확인하는 도시를 저장하는 즐겨찾기
+- Element Plus Color Picker를 이용한 버튼 색상 변경
+- 최신 날씨와 대기질 데이터를 다시 요청하는 새로고침
+- 온도와 대기질 상태 라벨 숨기기 및 보이기
+- AQI 상태별 색상 라벨과 PM10, PM2.5 상세 정보
 
 ## 주요 화면
 
@@ -63,64 +102,70 @@ npm run lint
 ## 프로젝트 구조
 
 ```text
-src/
-├── App.vue
-├── main.js
-├── assets/
-│   ├── base.css
-│   ├── main.css
-│   └── practice.css
-├── components/
-│   ├── practices/
-│   │   ├── basic/
-│   │   │   ├── SampleOne.vue
-│   │   │   ├── Vue*.vue
-│   │   │   ├── Event*.vue
-│   │   │   ├── Model*.vue
-│   │   │   ├── StyleScoped.vue
-│   │   │   └── WeatherMockup.vue
-│   │   ├── composition/
-│   │   │   ├── Reactive*.vue
-│   │   │   ├── ComputedBasic.vue
-│   │   │   └── Watchers*.vue
-│   │   ├── component/
-│   │   │   ├── Lifecycle*.vue
-│   │   │   ├── PropsEmits*.vue
-│   │   │   └── Slot*.vue
-│   │   └── library/
-│   │       ├── StoreCounter.vue
-│   │       ├── AxiosWeather.vue
-│   │       ├── AxiosJson.vue
-│   │       ├── ElementPlus.vue
-│   │       └── EcmaScript.vue
-│   └── weather/
-│       ├── BaseDashboardCard.vue
-│       ├── SearchBar.vue
-│       ├── UnitToggler.vue
-│       ├── WeatherCard.vue
-│       ├── WeatherParent.vue
-│       └── WeatherSummary.vue
-├── router/
-│   └── index.js
-├── services/
-│   ├── airQualityApi.js
-│   └── weatherApi.js
-├── stores/
-│   ├── configStore.js
-│   ├── counter.js
-│   └── weatherStore.js
-└── views/
-    ├── BasicPracticeView.vue
-    ├── Practice2.vue
-    ├── Practice3.vue
-    ├── WeatherView.vue
-    ├── WeatherCompositionView.vue
-    ├── WeatherComponentView.vue
-    ├── WeatherHomeView.vue
-    ├── WeatherAboutView.vue
-    ├── WeatherFavoritesView.vue
-    ├── WeatherDetailView.vue
-    └── NotFoundView.vue
+.
+├── index.html
+├── package.json
+├── vite.config.js
+├── vercel.json
+├── README.md
+└── src/
+    ├── App.vue
+    ├── main.js
+    ├── assets/
+    │   ├── base.css
+    │   ├── main.css
+    │   └── practice.css
+    ├── components/
+    │   ├── practices/
+    │   │   ├── basic/
+    │   │   │   ├── SampleOne.vue
+    │   │   │   ├── Vue*.vue
+    │   │   │   ├── Event*.vue
+    │   │   │   ├── Model*.vue
+    │   │   │   ├── StyleScoped.vue
+    │   │   │   └── WeatherMockup.vue
+    │   │   ├── composition/
+    │   │   │   ├── Reactive*.vue
+    │   │   │   ├── ComputedBasic.vue
+    │   │   │   └── Watchers*.vue
+    │   │   ├── component/
+    │   │   │   ├── Lifecycle*.vue
+    │   │   │   ├── PropsEmits*.vue
+    │   │   │   └── Slot*.vue
+    │   │   └── library/
+    │   │       ├── StoreCounter.vue
+    │   │       ├── AxiosWeather.vue
+    │   │       ├── AxiosJson.vue
+    │   │       ├── ElementPlus.vue
+    │   │       └── EcmaScript.vue
+    │   └── weather/
+    │       ├── BaseDashboardCard.vue
+    │       ├── SearchBar.vue
+    │       ├── UnitToggler.vue
+    │       ├── WeatherCard.vue
+    │       ├── WeatherParent.vue
+    │       └── WeatherSummary.vue
+    ├── router/
+    │   └── index.js
+    ├── services/
+    │   ├── airQualityApi.js
+    │   └── weatherApi.js
+    ├── stores/
+    │   ├── configStore.js
+    │   ├── counter.js
+    │   └── weatherStore.js
+    └── views/
+        ├── BasicPracticeView.vue
+        ├── Practice2.vue
+        ├── Practice3.vue
+        ├── WeatherView.vue
+        ├── WeatherCompositionView.vue
+        ├── WeatherComponentView.vue
+        ├── WeatherHomeView.vue
+        ├── WeatherAboutView.vue
+        ├── WeatherFavoritesView.vue
+        ├── WeatherDetailView.vue
+        └── NotFoundView.vue
 ```
 
 ## 공부한 내용

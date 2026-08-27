@@ -143,6 +143,10 @@ onMounted(() => {
           />
         </template>
 
+        <p v-if="weatherList.length > 0" class="data-source">
+          날씨: OpenWeatherMap · 대기질: Open-Meteo / CAMS
+        </p>
+
         <p v-if="!isLoading && !errorMessage && filteredWeatherList.length === 0">
           검색 결과와 일치하는 도시가 없습니다.
         </p>
@@ -204,6 +208,13 @@ onMounted(() => {
   border-radius: 6px;
   background-color: #f1f5f8;
   text-align: center;
+}
+
+.data-source {
+  margin: 12px 0 0;
+  color: #7b8790;
+  font-size: 12px;
+  text-align: right;
 }
 
 .api-actions {

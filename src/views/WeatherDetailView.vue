@@ -74,6 +74,11 @@ onMounted(() => {
         <p>기상 현황: {{ selectedWeather.status }}</p>
         <p>대기 습도: {{ selectedWeather.humidity }}%</p>
         <p>현재 풍속: {{ selectedWeather.windSpeed }}m/s</p>
+        <hr class="detail-divider" />
+        <p>대기질: {{ selectedWeather.airQualityStatus }}</p>
+        <p>대기질 지수(AQI): {{ selectedWeather.aqi }}</p>
+        <p>미세먼지(PM10): {{ selectedWeather.pm10 }}㎍/㎥</p>
+        <p>초미세먼지(PM2.5): {{ selectedWeather.pm2_5 }}㎍/㎥</p>
       </div>
 
       <p v-else class="missing-city">해당 도시의 기상 정보를 찾을 수 없습니다.</p>
@@ -109,6 +114,12 @@ onMounted(() => {
 .detail-heading img {
   width: 64px;
   height: 64px;
+}
+
+.detail-divider {
+  margin: 14px 0;
+  border: 0;
+  border-top: 1px solid #d5dce3;
 }
 
 .loading-message {

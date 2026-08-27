@@ -48,6 +48,14 @@ const displayTemp = computed(() => {
 const weatherIconUrl = computed(() => {
   return props.city.iconCode ? getWeatherIconUrl(props.city.iconCode) : ''
 })
+
+const airQualityClass = computed(() => {
+  if (props.city.aqi <= 50) return 'air-good'
+  if (props.city.aqi <= 100) return 'air-normal'
+  if (props.city.aqi <= 150) return 'air-caution'
+  if (props.city.aqi <= 200) return 'air-bad'
+  return 'air-very-bad'
+})
 </script>
 
 <template>
@@ -66,6 +74,9 @@ const weatherIconUrl = computed(() => {
 
         <!-- Store의 전역 설정에 따라 모든 카드의 상태 라벨을 함께 표시하거나 숨깁니다. -->
         <template v-if="configStore.showTemperatureLabel">
+          <span class="air-quality" :class="airQualityClass">
+            대기질 {{ city.airQualityStatus }} (AQI {{ city.aqi }})
+          </span>
           <span v-if="city.temp >= 25" class="temperature-label hot">
             🔥 더움 (25도 이상)
           </span>
@@ -124,6 +135,35 @@ const weatherIconUrl = computed(() => {
 
 .weather-card p {
   margin: 6px 0;
+}
+
+.air-quality {
+  display: inline-block;
+  padding: 4px 8px;
+  margin-right: 6px;
+  border-radius: 4px;
+  color: white;
+  font-size: 13px;
+}
+
+.air-good {
+  background-color: #3498db;
+}
+
+.air-normal {
+  background-color: #2eae67;
+}
+
+.air-caution {
+  background-color: #f39c12;
+}
+
+.air-bad {
+  background-color: #e74c3c;
+}
+
+.air-very-bad {
+  background-color: #8e44ad;
 }
 
 .card-actions {

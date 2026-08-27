@@ -15,6 +15,8 @@ Vue 3의 기본 문법을 작은 예제로 직접 실행해 보고, 배운 내�
 - 학습한 문법을 조합한 날씨 Mockup 구현
 - 실습 내용이 많아짐에 따라 Vue Router로 학습 페이지 분리
 - Pinia Store의 state, getter, action을 이용한 전역 상태 관리
+- Axios를 이용한 REST API 요청과 CRUD 처리
+- OpenWeatherMap 실시간 데이터를 활용한 날씨 대시보드 구현
 
 ## 기술 스택
 
@@ -23,6 +25,7 @@ Vue 3의 기본 문법을 작은 예제로 직접 실행해 보고, 배운 내�
 - Vite
 - Vue Router
 - Pinia
+- Axios
 - Element Plus
 - ESLint, Oxlint, Prettier
 
@@ -41,6 +44,14 @@ npm run dev
 ```
 
 터미널에 표시되는 로컬 주소를 브라우저에서 열면 전체 실습 예제를 확인할 수 있습니다.
+
+OpenWeatherMap 실습에는 프로젝트 루트의 `.env.local` 파일에 개인 API 키가 필요합니다.
+
+```env
+VITE_OPENWEATHER_API_KEY=본인의_API_키
+```
+
+`.env.local`은 `*.local` 규칙으로 Git에서 제외됩니다. 환경변수를 추가하거나 변경한 뒤에는 개발 서버를 다시 시작해야 합니다. Vite의 `VITE_` 환경변수는 클라이언트 번들에서 접근할 수 있으므로 Git 노출 방지와 별개로 완전한 비밀 저장소는 아닙니다. 실제 서비스에서 비밀 키를 보호하려면 백엔드에서 API 요청을 대신 처리해야 합니다.
 
 ### 기타 명령어
 
@@ -93,13 +104,19 @@ src/
 │       └── Weather*.vue
 ├── router/
 │   └── index.js
+├── services/
+│   └── weatherApi.js
 ├── stores/
 │   ├── configStore.js
-│   └── counter.js
+│   ├── counter.js
+│   └── weatherStore.js
 └── views/
     ├── BasicPracticeView.vue
     ├── Practice2.vue
     ├── Practice3.vue
+    ├── WeatherHomeView.vue
+    ├── WeatherDetailView.vue
+    ├── WeatherFavoritesView.vue
     ├── WeatherView.vue
     └── WeatherCompositionView.vue
 ```
@@ -114,6 +131,7 @@ src/
 | `/practice3` | `Practice3.vue` | Pinia Store와 외부 라이브러리 실습 |
 | `/weather` | `WeatherView.vue` | 날씨 Mockup 종합 과제 |
 | `/weather-composition` | `WeatherCompositionView.vue` | computed와 watch를 적용한 날씨 Composition 과제 |
+| `/weather-router` | `WeatherHomeView.vue` | Router, Pinia, Axios를 적용한 실시간 날씨 대시보드 |
 
 라우트 컴포넌트는 동적 `import()`로 불러옵니다. 사용자가 해당 URL에 접근할 때 필요한 페이지 코드를 로드하므로 페이지별 코드도 별도 번들로 분리됩니다.
 
@@ -471,6 +489,77 @@ app.use(router)
 
 관련 예제: `stores/counter.js`, `StoreCounter.vue`, `Practice3.vue`
 
+### 9. Axios와 REST API
+
+Axios는 브라우저에서 HTTP 요청을 보내고 서버 응답을 JavaScript 객체로 다루기 위한 라이브러리입니다. `axios.get()`의 반환 Promise를 `await`로 기다리면 응답 본문은 `response.data`에서 확인할 수 있습니다.
+
+```js
+const response = await axios.get('/weather', {
+  params: {
+    lat: 37.5665,
+    lon: 126.978,
+    units: 'metric',
+  },
+})
+
+weatherData.value = response.data
+```
+
+`params` 객체를 사용하면 Axios가 쿼리 문자열을 생성합니다. URL 문자열을 직접 연결하는 방식보다 필수 값과 선택 값을 구분하기 쉽고 인코딩도 자동 처리됩니다.
+
+#### 비동기 요청 상태
+
+API 요청은 즉시 끝나지 않고 네트워크 응답을 기다려야 합니다. 화면에서 요청 상태를 알 수 있도록 데이터, 로딩, 오류를 별도의 반응형 값으로 관리했습니다.
+
+```js
+const weatherData = ref(null)
+const isLoading = ref(false)
+const errorMessage = ref('')
+
+const fetchWeather = async () => {
+  isLoading.value = true
+  errorMessage.value = ''
+
+  try {
+    const response = await axios.get(API_URL)
+    weatherData.value = response.data
+  } catch (error) {
+    errorMessage.value = '데이터를 가져오지 못했습니다.'
+  } finally {
+    isLoading.value = false
+  }
+}
+```
+
+- `try`: 정상 응답 데이터를 state에 저장합니다.
+- `catch`: 401, 404, 500 또는 네트워크 오류를 처리합니다.
+- `finally`: 성공 여부와 관계없이 로딩 상태를 종료합니다.
+- 요청 중에는 버튼을 비활성화하여 중복 요청을 방지합니다.
+
+Postman으로 동일한 URL과 Query Params를 먼저 호출하면서 문제 범위를 구분했습니다. Postman에서도 `401 Invalid API key`가 발생하면 Vue나 Axios가 아니라 API 키의 인증·활성화 문제입니다. Postman은 성공하지만 Vue에서만 실패하면 환경변수 이름, 개발 서버 재시작, Axios 요청 코드를 점검합니다.
+
+#### JSONPlaceholder CRUD
+
+JSONPlaceholder의 게시글 API로 REST CRUD 요청을 연습했습니다.
+
+| 동작 | HTTP 메서드 | 요청 예시 | 화면 처리 |
+| --- | --- | --- | --- |
+| Read | GET | `/posts?_limit=3` | 게시글 목록 저장 |
+| Create | POST | `/posts` | 응답 객체를 목록 앞에 추가 |
+| Update | PUT | `/posts/:id` | 같은 ID의 목록 항목 교체 |
+| Delete | DELETE | `/posts/:id` | 해당 항목을 배열에서 제거 |
+
+JSONPlaceholder는 학습용 Fake API이므로 POST, PUT, DELETE 성공 응답을 보내도 실제 서버 데이터는 영구 변경되지 않습니다. POST 응답으로 받은 새 항목은 화면 배열에는 존재하지만 서버에는 저장되지 않으므로, 이후 해당 ID를 PUT하면 실패할 수 있습니다. 이런 항목까지 수정하려면 로컬 데이터 여부를 표시한 뒤 서버 요청 없이 화면 배열만 변경해야 하며, 새로고침하면 원본 데이터로 돌아오는 특성을 이해했습니다.
+
+API 응답에서 객체와 배열도 구분했습니다. 하나의 날씨 응답은 속성 묶음이므로 객체이고, `weather`처럼 여러 상태가 들어올 수 있는 값은 배열입니다.
+
+```js
+weatherData.value.main.temp
+weatherData.value.weather[0].description
+```
+
+관련 예제: `AxiosWeather.vue`, `AxiosJson.vue`
+
 ## 종합 과제: Weather Mockup
 
 `WeatherMockup.vue`는 앞에서 학습한 문법을 함께 사용하는 날씨 화면입니다.
@@ -526,7 +615,7 @@ localStorage는 배열을 직접 저장할 수 없기 때문에 저장할 때 `J
 
 ## 종합 과제: Weather Router
 
-과제 3에서 분리한 날씨 컴포넌트를 활용해 대시보드, 서비스 소개, 도시 상세, 즐겨찾기 페이지를 Vue Router로 연결했습니다. 과제별 URL을 구분하기 위해 모든 화면을 `/weather-router` 아래에 모았습니다. 상세보기 버튼에서는 기존 `window.alert()` 대신 `router.push()`를 사용하고, `/weather-router/:cityId`의 동적 파라미터로 선택한 도시의 Mock Data를 찾아 보여주도록 변경했습니다. 존재하지 않는 주소는 Catch-all Route로 404 페이지에 연결하고, 각 View는 동적 `import()`로 지연 로딩했습니다.
+과제 3에서 분리한 날씨 컴포넌트를 활용해 대시보드, 서비스 소개, 도시 상세, 즐겨찾기 페이지를 Vue Router로 연결했습니다. 과제별 URL을 구분하기 위해 모든 화면을 `/weather-router` 아래에 모았습니다. 상세보기 버튼에서는 기존 `window.alert()` 대신 `router.push()`를 사용하고, `/weather-router/:cityId`의 동적 파라미터로 선택한 도시를 찾아 보여주도록 변경했습니다. 처음에는 Mock Data를 사용했고 이후 Axios 과제에서 같은 도시 ID를 실제 API 데이터와 연결했습니다. 존재하지 않는 주소는 Catch-all Route로 404 페이지에 연결하고, 각 View는 동적 `import()`로 지연 로딩했습니다.
 
 과제 4에서도 카드에 즐겨찾기 버튼을 추가해 직접 기록할 수 있도록 만들었습니다. 과제 3의 기록을 그대로 가져오지 않도록 별도의 `weatherRouterFavorites` 키에 도시 ID를 저장했고, `/weather-router/favorites` 페이지에서는 과제 4에서 선택한 도시만 불러와 상세 페이지로 이동할 수 있게 했습니다.
 
@@ -633,6 +722,83 @@ const displayTemp = computed(() => {
 
 관련 예제: `stores/configStore.js`, `UnitToggler.vue`, `WeatherCard.vue`, `WeatherHomeView.vue`, `WeatherDetailView.vue`
 
+## 종합 과제: Weather Axios
+
+과제 4·5에서 사용하던 서울, 수원, 부산, 제주의 고정 Mock 날씨를 OpenWeatherMap Current Weather API의 실제 데이터로 교체했습니다. 기존 검색, 즐겨찾기, 상세 라우트, 섭씨·화씨 설정은 유지하면서 데이터 공급 방식만 API 기반으로 변경했습니다.
+
+### API 서비스 분리
+
+`weatherApi.js`는 도시별 좌표와 Axios 요청을 담당합니다. View 컴포넌트가 API 주소나 키를 직접 알지 않도록 네트워크 코드를 서비스 파일로 분리했습니다.
+
+```js
+export const CITY_LOCATIONS = [
+  { id: 'city_01', name: '서울', lat: 37.5665, lon: 126.978 },
+  { id: 'city_02', name: '수원', lat: 37.2636, lon: 127.0286 },
+  { id: 'city_03', name: '부산', lat: 35.1796, lon: 129.0756 },
+  { id: 'city_04', name: '제주', lat: 33.4996, lon: 126.5312 },
+]
+
+const response = await weatherClient.get('/weather', {
+  params: {
+    lat: location.lat,
+    lon: location.lon,
+    appid: import.meta.env.VITE_OPENWEATHER_API_KEY,
+    units: 'metric',
+    lang: 'kr',
+  },
+})
+```
+
+OpenWeatherMap의 원본 응답은 화면에서 사용하기 편한 도시 객체로 변환합니다.
+
+| API 응답 | 애플리케이션 필드 | 사용 화면 |
+| --- | --- | --- |
+| `main.temp` | `temp` | 메인·즐겨찾기·상세 기온 |
+| `main.feels_like` | `feelsLike` | 상세 체감온도 |
+| `main.humidity` | `humidity` | 상세 습도 |
+| `weather[0].description` | `status` | 날씨 상태 |
+| `weather[0].icon` | `iconCode` | OpenWeather 날씨 아이콘 |
+| `wind.speed` | `windSpeed` | 상세 풍속 |
+| `dt` | `observedAt` | API 관측 시각 데이터 |
+
+API가 반환하는 지역명은 좌표에 따라 인접 관측 지역으로 표시될 수 있어 화면의 도시명은 `CITY_LOCATIONS`에서 관리하고, 실제 응답 지역명은 `apiLocationName`으로 별도 보관했습니다.
+
+### weatherStore에서 실제 데이터 공유
+
+`weatherStore.js`는 네 도시의 요청 결과와 로딩·오류·갱신 시각을 전역 상태로 관리합니다.
+
+```js
+weatherList.value = await Promise.all(
+  CITY_LOCATIONS.map(fetchCurrentWeather),
+)
+```
+
+`Promise.all()`을 사용해 도시 요청을 순서대로 기다리지 않고 동시에 실행합니다. 모든 응답이 완료되면 하나의 배열로 Store에 저장합니다. `WeatherHomeView`, `WeatherDetailView`, `WeatherFavoritesView`가 같은 Store를 사용하므로 라우트마다 Mock Data를 중복 선언할 필요가 없습니다.
+
+```text
+화면 Mount
+→ weatherStore.fetchWeatherList()
+→ weatherApi가 네 도시를 OpenWeatherMap에 동시 요청
+→ 응답을 공통 도시 객체로 변환
+→ weatherList state에 저장
+→ 메인·상세·즐겨찾기 화면 자동 갱신
+```
+
+이미 Store에 데이터가 있으면 라우트 이동 때 불필요한 재요청을 생략하고, 사용자가 `날씨 새로고침` 버튼을 누르면 `fetchWeatherList(true)`로 강제 재조회합니다. 마지막 갱신 시각을 표시하고 요청 중에는 버튼을 비활성화했습니다.
+
+### 기존 기능과 실제 데이터 결합
+
+- 검색어 computed가 API로 받은 도시 배열을 필터링합니다.
+- 즐겨찾기는 기존 localStorage 도시 ID를 실제 날씨 목록과 결합합니다.
+- 상세 페이지는 동적 라우트의 `cityId`로 Store 데이터를 찾습니다.
+- `configStore`의 섭씨·화씨 설정을 실제 기온과 체감온도에 적용합니다.
+- 날씨 아이콘, 체감온도, 습도, 풍속을 추가해 대시보드 정보를 확장했습니다.
+- 로딩 중, API 오류, 검색 결과 없음 상태를 서로 다른 메시지로 처리했습니다.
+
+OpenWeatherMap만 사용해 실제 날씨 적용과 애플리케이션 기능 확장까지 구현했으며, 기타 외부 API 연동은 아직 추가하지 않았습니다.
+
+관련 예제: `services/weatherApi.js`, `stores/weatherStore.js`, `WeatherHomeView.vue`, `WeatherCard.vue`, `WeatherDetailView.vue`, `WeatherFavoritesView.vue`
+
 ## 공부하며 이해한 핵심
 
 1. Vue 화면의 기준은 DOM 자체가 아니라 반응형 상태입니다.
@@ -656,6 +822,13 @@ const displayTemp = computed(() => {
 19. 원본 섭씨 온도는 유지하고 computed로 표시 온도만 변환하면 반복 변환으로 인한 데이터 손상과 오차 누적을 방지할 수 있습니다.
 20. Store의 state, getter, action은 선언하는 데서 끝나지 않고 컴포넌트가 실제로 사용해야 전역 상태 변경이 화면에 반영됩니다.
 21. JavaScript 식별자는 대소문자를 구분하므로 Store 인스턴스의 선언명과 템플릿에서 사용하는 이름이 정확히 같아야 합니다.
+22. Axios의 응답 본문은 `response.data`에 있으며, Query Params는 문자열 연결 대신 `params` 객체로 전달할 수 있습니다.
+23. 비동기 요청은 데이터뿐 아니라 loading과 error 상태를 함께 관리해야 사용자가 현재 상황을 알 수 있습니다.
+24. Postman으로 API를 직접 호출하면 인증·서버 문제와 Vue·Axios 코드 문제를 분리해서 진단할 수 있습니다.
+25. JSONPlaceholder의 POST, PUT, DELETE 응답은 실제 영구 저장이 아니므로 서버 데이터와 화면의 로컬 배열 상태를 구분해야 합니다.
+26. API 응답을 서비스 계층에서 화면용 객체로 변환하면 외부 데이터 구조가 바뀌어도 View의 수정 범위를 줄일 수 있습니다.
+27. `Promise.all()`을 사용하면 서로 독립적인 여러 도시의 API 요청을 동시에 처리할 수 있습니다.
+28. API 데이터를 Pinia Store에 저장하면 메인·상세·즐겨찾기처럼 서로 다른 View가 같은 최신 데이터를 공유할 수 있습니다.
 
 ## 다음 학습 목표
 
@@ -664,5 +837,6 @@ const displayTemp = computed(() => {
 - Pinia 상태를 localStorage에 저장해 새로고침 후에도 설정 유지
 - 중복된 온도 변환 로직을 composable로 분리
 - 중첩 라우트와 동적 라우트 파라미터 학습
-- API 요청을 통한 실제 날씨 데이터 연동
+- OpenWeatherMap 외의 외부 API를 연동해 대시보드 기능 확장
+- 여러 API 요청 중 일부만 실패해도 나머지 도시를 표시하는 부분 실패 처리
 - 컴포넌트 단위 테스트 작성
